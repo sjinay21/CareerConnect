@@ -12,7 +12,8 @@ async function getallPosts(userId) {
       posts.id, posts.author_id, posts.content, posts.media_url, posts.created_at, 
       users.name, users.summary,
       (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) as likes_count,
-      EXISTS(SELECT 1 FROM likes WHERE likes.post_id = posts.id AND likes.user_id = $1) as is_liked_by_user
+      EXISTS(SELECT 1 FROM likes WHERE likes.post_id = posts.id AND likes.user_id = $1) as is_liked_by_user,
+      (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) as comments_count
     FROM posts
     JOIN users ON posts.author_id = users.id
     ORDER BY posts.created_at DESC
@@ -20,13 +21,13 @@ async function getallPosts(userId) {
   return result.rows;
 }
 async function updatePost(postId, authorId, content, mediaUrl) {
-    const query = `UPDATE posts SET content = $1, media_url = COALESCE($2, media_url) WHERE id = $3 AND author_id = $4 RETURNING *`;
-    const result = await pool.query(query, [content, mediaUrl, postId, authorId]);
-    return result.rows[0];
+  const query = `UPDATE posts SET content = $1, media_url = COALESCE($2, media_url) WHERE id = $3 AND author_id = $4 RETURNING *`;
+  const result = await pool.query(query, [content, mediaUrl, postId, authorId]);
+  return result.rows[0];
 }
 async function deletePost(postId, authorId) {
-    const query = `DELETE FROM posts WHERE id = $1 AND author_id = $2 RETURNING *`;
-    const result = await pool.query(query, [postId, authorId]);
-    return result.rows[0];
+  const query = `DELETE FROM posts WHERE id = $1 AND author_id = $2 RETURNING *`;
+  const result = await pool.query(query, [postId, authorId]);
+  return result.rows[0];
 }
-export { createPost, getallPosts,updatePost,deletePost };
+export { createPost, getallPosts, updatePost, deletePost };

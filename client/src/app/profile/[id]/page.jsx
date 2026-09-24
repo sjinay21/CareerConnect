@@ -9,8 +9,9 @@ import Experience from "@/components/profile/experience";
 import Textarea from "@/components/ui/textarea";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { updateUserProfile } from "@/utils/api";
+import { updateUserProfile, getPosts, updatePost, deletePost } from "@/utils/api";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
+import Post from "@/components/feed/post";
 
 function ProfilePage() {
   const { profile, setProfile } = useProfile();
@@ -22,6 +23,61 @@ function ProfilePage() {
     about: "",
     skill: "",
   });
+
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    if (profile && profile.id) {
+      async function fetchUserPosts() {
+        try {
+          const res = await getPosts();
+          if (res.ok) {
+            const data = await res.json();
+            const filteredPosts = (data.posts || []).filter(p => p.authorId == profile.id);
+            setPosts(filteredPosts);
+          }
+        } catch (e) {
+          console.error("Error fetching user posts:", e);
+        }
+      }
+      fetchUserPosts();
+    }
+  }, [profile?.id]);
+
+  async function handleUpdatePost(postId, content, formData) {
+    const selectedPost = posts.find((post) => post.id == postId);
+    if (!formData.has("postId")) formData.append("postId", postId);
+
+    try {
+      const response = await updatePost(postId, content, formData);
+      const result = await response.json();
+      if (!response.ok) {
+        showErrorToast(result.message || TOAST_MESSAGES.POST_UPDATE_ERROR);
+        return { success: false, message: result.message };
+      }
+      setPosts(posts.map((post) => post.id == postId ? { ...selectedPost, ...result.post } : post));
+      showSuccessToast(TOAST_MESSAGES.POST_UPDATED);
+      return { success: true };
+    } catch (error) {
+      showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
+      return { success: false, message: "Network error occurred." };
+    }
+  }
+
+  async function handleDeletePost(postId) {
+    try {
+      const res = await deletePost(postId);
+      if (res.ok) {
+        setPosts(posts.filter((p) => p.id != postId));
+        showSuccessToast("Post deleted successfully");
+      } else {
+        const errorData = await res.json();
+        showErrorToast(errorData.message || TOAST_MESSAGES.POST_DELETE_ERROR);
+      }
+    } catch (err) {
+      showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
+    }
+  }
 
   function openEditModal() {
     setEditData(profile);
@@ -144,6 +200,20 @@ function ProfilePage() {
           </div>
 
           <Experience />
+
+          {posts.length > 0 && (
+            <div className="my-5 flex flex-col gap-5">
+              <div className="text-xl font-semibold mb-2">Activity ({posts.length} posts)</div>
+              {posts.map((post) => (
+                <Post 
+                  key={post.id} 
+                  post={post} 
+                  onEdit={handleUpdatePost} 
+                  onDelete={handleDeletePost} 
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="hidden md:flex md:w-[28%]">

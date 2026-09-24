@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { islikePost } from "@/utils/api";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { islikePost, getComments, addComment } from "@/utils/api";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import SendIcon from "@mui/icons-material/Send";
@@ -9,13 +9,48 @@ import Card from "@/components/shared/card";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import CommentReplies from "./CommentReplies";
+import Model from "@/components/shared/model";
+import { toast } from "react-hot-toast";
 
-export default function SocialActions({ postId, initialLikes, initialLiked }) {
+const SocialActions = forwardRef(({ postId, initialLikes, initialLiked, initialCommentsCount }, ref) => {
   const [likes, setLikes] = useState(initialLikes || 0);
   const [liked, setLiked] = useState(initialLiked || false);
+  const [commentsCount, setCommentsCount] = useState(initialCommentsCount || 0);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
+  const [hasFetchedComments, setHasFetchedComments] = useState(false);
+  const [showSharePopup, setShowSharePopup] = useState(false);
+  const [generatedShareUrl, setGeneratedShareUrl] = useState("");
+
+  useImperativeHandle(ref, () => ({
+    openSharePopup
+  }));
+
+  const generateShareId = (length = 8) => {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  };
+
+  const openSharePopup = () => {
+    const randomStr = generateShareId(8);
+    // Using window.location.origin ensures it works on your local machine (localhost:3000)
+    // Using window.location.origin is REQUIRED for the browser to know this is a real web address
+    // It will dynamically resolve to http://localhost:3000 on your machine.
+    const url = `${window.location.origin}/post/${randomStr}${postId}`;
+    setGeneratedShareUrl(url);
+    setShowSharePopup(true);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(generatedShareUrl);
+    toast.success("Link copied to clipboard!");
+    setShowSharePopup(false);
+  };
 
   async function handleLike() {
     const prevLiked = liked;
@@ -38,40 +73,96 @@ export default function SocialActions({ postId, initialLikes, initialLiked }) {
       console.error("Error toggling like:", error);
     }
   }
-  function handleonSubmit(e) {
-    e.preventDefault();
-    if (commentText.trim() === "") {
-      return;
+
+  const formatComments = (rawComments) => {
+    const comment = {};
+    const nestedComments = [];
+
+    // 1. Initialize every comment into a map using a basic for-loop
+    for (let i = 0; i < rawComments.length; i++) {
+      const c = rawComments[i];
+      comment[c.id] = { 
+        id: c.id, 
+        text: c.content, 
+        authorName: c.name, 
+        authorSummary: c.summary, 
+        created_at: c.created_at,
+        replies: [] 
+      };
     }
-    const newcomment = {
-      id: crypto.randomUUID(),
-      text: commentText,
-      replies: [],
-    };
-    setComments((prev) => [...prev, newcomment]);
-    setCommentText("");
-  }
-  function addReply(commentId, replyText) {
-    const newReply = {
-      id: crypto.randomUUID(),
-      text: replyText,
-      replies: [],
-    };
-    function updateComments(commentList) {
-      return commentList.map((comment) => {
-        if (comment.id === commentId) {
-          return {
-            ...comment,
-            replies: [...comment.replies, newReply],
-          };
+
+    // 2. Build the nested nestedComments based on parent_comment_id
+    for (let i = 0; i < rawComments.length; i++) {
+      const c = rawComments[i];
+      if (c.parent_comment_id) {
+        if (comment[c.parent_comment_id]) {
+          comment[c.parent_comment_id].replies.push(comment[c.id]);
         }
-        return {
-          ...comment,
-          replies: updateComments(comment.replies),
-        };
-      });
+      } else {
+        nestedComments.push(comment[c.id]);
+      }
     }
-    setComments((prev) => updateComments(prev));
+
+    return nestedComments;
+  };
+
+  useEffect(() => {
+    if (showComments && !hasFetchedComments) {
+      const fetchComments = async () => {
+        try {
+          const response = await getComments(postId);
+          const data = await response.json();
+          if (data.success) {
+            setComments(formatComments(data.comments));
+            setHasFetchedComments(true);
+          }
+        } catch (error) {
+          console.error("Error fetching comments:", error);
+        }
+      };
+      fetchComments();
+    }
+  }, [showComments, postId, hasFetchedComments]);
+
+  async function handleonSubmit(e) {
+    e.preventDefault();
+    if (commentText.trim() === "") return;
+
+    try {
+      const response = await addComment(postId, commentText);
+      const data = await response.json();
+      
+      if (data.success) {
+        const updatedResponse = await getComments(postId);
+        const updatedData = await updatedResponse.json();
+        if (updatedData.success) {
+          setComments(formatComments(updatedData.comments));
+          setCommentsCount(prev => prev + 1);
+        }
+        setCommentText("");
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  }
+
+  async function addReply(parentCommentId, replyText) {
+    try {
+      const response = await addComment(postId, replyText, parentCommentId);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Refetch the comments nestedComments so the reply gets nested in the right place automatically!
+        const updatedResponse = await getComments(postId);
+        const updatedData = await updatedResponse.json();
+        if (updatedData.success) {
+          setComments(formatComments(updatedData.comments));
+          setCommentsCount(prev => prev + 1);
+        }
+      }
+    } catch (error) {
+      console.error("Error adding reply:", error);
+    }
   }
 
   return (
@@ -85,7 +176,7 @@ export default function SocialActions({ postId, initialLikes, initialLiked }) {
           </span>
         </div>
         <span className="text-sm text-gray-600">
-          {comments.length} Comments
+          {commentsCount} Comments
         </span>
       </div>
       <div className="flex border-b border-gray-100">
@@ -114,10 +205,10 @@ export default function SocialActions({ postId, initialLikes, initialLiked }) {
 
         <button
           type="button"
+          onClick={openSharePopup}
           className="w-1/3 py-3 flex justify-center items-center gap-2 cursor-pointer hover:bg-gray-100"
         >
           <SendIcon sx={{ fontSize: 22 }} />
-
           <span>Share</span>
         </button>
       </div>
@@ -160,6 +251,23 @@ export default function SocialActions({ postId, initialLikes, initialLiked }) {
           </div>
         </div>
       )}
+
+      {showSharePopup && (
+        <Model title="Share post" onClose={() => setShowSharePopup(false)}>
+          <div className="flex flex-col gap-4 py-6 px-2">
+            <div className="break-all text-sm text-gray-700 font-medium">
+              {generatedShareUrl}
+            </div>
+            <div className="flex justify-end">
+              <Buttonvariants onClick={handleCopyLink} variant="postsend">
+                Copy link
+              </Buttonvariants>
+            </div>
+          </div>
+        </Model>
+      )}
     </Card>
   );
-}
+});
+
+export default SocialActions;

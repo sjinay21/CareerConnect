@@ -1,51 +1,31 @@
 "use client";
 import Card from "@/components/shared/card";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Buttonvariants from "@/components/ui/button";
 import SocialActions from "@/components/shared/socialactions";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SendIcon from "@mui/icons-material/Send";
 import { useProfile } from "@/hooks/useProfile";
 import Model from "@/components/shared/model";
 import EditModel from "./editmodel";
 import { toast } from "react-hot-toast";
 
 export default function Post({ post, onEdit, onDelete }) {
+  const socialActionsRef = useRef(null);
   const { profile } = useProfile();
   const [seemore, setSeemore] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const desc = post?.content || "";
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const isAuthor = profile?.id == post?.authorId;
-  const handleDelete = async () => {
+  const handleDelete = () => {
     setShowDropdown(false);
-    toast.custom((t) => (
-      <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-white shadow-2xl rounded-xl border border-gray-200 p-5 flex flex-col gap-4 items-center`}>
-        <span className="font-semibold text-gray-800 text-base text-center">Are you sure you want to delete this post?</span>
-        <div className="flex gap-3 justify-center mt-1 w-full">
-          <button 
-            className="flex-1 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition text-sm font-medium border border-gray-300"
-            onClick={() => toast.dismiss(t.id)}
-          >
-            Cancel
-          </button>
-          <button 
-            className="flex-1 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm font-medium shadow-sm"
-            onClick={async () => {
-              toast.dismiss(t.id);
-              await onDelete(post.id);
-            }}
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: Infinity,
-      position: 'top-center',
-    });
+    setIsDeleting(true);
   };
   const handleEditSave = async (formData) => {
     const result = await onEdit(post.id, formData.get("content"), formData);
@@ -96,6 +76,16 @@ export default function Post({ post, onEdit, onDelete }) {
                     <span>Edit Post</span>
                   </div>
                   <div
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700 font-semibold text-sm transition"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      if (socialActionsRef.current) socialActionsRef.current.openSharePopup();
+                    }}
+                  >
+                    <SendIcon fontSize="small" />
+                    <span>Share Post</span>
+                  </div>
+                  <div
                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer text-red-600 font-semibold text-sm transition"
                     onClick={handleDelete}
                   >
@@ -130,10 +120,12 @@ export default function Post({ post, onEdit, onDelete }) {
           </div>
         )}
 
-        <SocialActions 
-          postId={post.id} 
-          initialLikes={post.likesCount} 
-          initialLiked={post.isLikedByUser} 
+        <SocialActions
+          ref={socialActionsRef}
+          postId={post.id}
+          initialLikes={post.likesCount}
+          initialLiked={post.isLikedByUser}
+          initialCommentsCount={post.commentsCount}
         />
       </Card>
 
@@ -142,6 +134,32 @@ export default function Post({ post, onEdit, onDelete }) {
           <EditModel post={post} onSave={handleEditSave} />
         </Model>
       )}
+
+      {isDeleting && (
+        <Model title="Delete Post" onClose={() => setIsDeleting(false)}>
+          <div className="flex flex-col gap-8 items-center py-8">
+            <span className="font-semibold text-gray-800 text-lg text-center">Are you sure you want to delete this post?</span>
+            <div className="flex gap-4 justify-center mt-2 w-full">
+              <button
+                className="w-[120px] py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition text-sm font-medium border border-gray-300"
+                onClick={() => setIsDeleting(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="w-[120px] py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm font-medium shadow-sm"
+                onClick={async () => {
+                  setIsDeleting(false);
+                  await onDelete(post.id);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </Model>
+      )}
+
     </>
   );
 }

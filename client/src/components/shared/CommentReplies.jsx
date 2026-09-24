@@ -27,10 +27,10 @@ export default function CommentReplies({ comment, addReply }) {
         />
         <div className="flex-1 min-w-0 pr-24">
           <div className="text-md">
-            User
+            {comment.authorName || "User"}
           </div>
           <div className="text-sm text-gray-500">
-            User portion
+            {comment.authorSummary || "LinkedIn Member"}
           </div>
           <div className="mt-1 ">
             {comment.text}

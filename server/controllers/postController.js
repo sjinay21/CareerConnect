@@ -64,6 +64,7 @@ export const getAllPosts = async (req, res) => {
       mediaUrl: post.media_url,
       createdAt: post.created_at,
       likesCount: parseInt(post.likes_count, 10),
+      commentsCount: parseInt(post.comments_count, 10),
       isLikedByUser: post.is_liked_by_user
     }));
 

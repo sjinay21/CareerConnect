@@ -136,7 +136,7 @@ function Feeds() {
                 className="rounded-full border-2 h-16 w-16 border-white cursor-pointer"
               />
               <input
-            
+                readOnly
                 className="w-full border p-3 rounded-3xl cursor-pointer hover:bg-gray-100 "
                 placeholder="Start a post..."
               />

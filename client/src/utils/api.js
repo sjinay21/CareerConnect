@@ -99,3 +99,67 @@ export const islikePost = async (postId) => {
     body: JSON.stringify({ postId }),
   });
 };
+
+export const getComments = async (postId) => {
+  return await customFetch(`/comments/getcomments?postId=${postId}`, {
+    method: "GET",
+  });
+};
+
+export const addComment = async (postId, content, parentCommentId = null) => {
+  const body = { postId, content }; 
+  if (parentCommentId) {
+    body.parentCommentId = parentCommentId;
+  }
+  
+  return await customFetch("/comments/addcomments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+};
+
+/* export const updateComment = async (commentId, content) => {
+  return await customFetch("/comments/updatecomments", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ commentId, content }),
+  });
+};
+
+export const deleteComment = async (commentId) => {
+  return await customFetch("/comments/deletecomments", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ commentId }),
+  });
+}; */
+
+export const getExperiences = async (userId = "") => {
+  const query = userId ? `?userId=${userId}` : "";
+  return await customFetch(`/experiences/getexperiences${query}`, {
+    method: "GET",
+  });
+};
+
+export const createExperience = async (data) => {
+  return await customFetch("/experiences/addexperience", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateExperience = async (id, data) => {
+  return await customFetch(`/experiences/updateexperience/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteExperience = async (id) => {
+  return await customFetch(`/experiences/deleteexperience/${id}`, {
+    method: "DELETE",
+  });
+};

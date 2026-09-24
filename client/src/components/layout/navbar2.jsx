@@ -26,7 +26,10 @@ export default function Navbar2() {
     <nav className="bg-white w-full border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center h-[52px]">
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
+          <h3 className="text-blue-600 font-bold text-3xl">
+                    Linked
+                </h3>
             <img 
               src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10" 
               alt="Linkedlogo" 

@@ -9,7 +9,8 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import likeRoutes from "./routes/likeRoutes.js";
-
+import commentRoutes from "./routes/commentRoutes.js";
+import experienceRoutes from "./routes/experienceRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +39,8 @@ app.use("/", authRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
 app.use("/like", likeRoutes);
+app.use("/comments", commentRoutes);
+app.use("/experiences", experienceRoutes);
 
 // Start server
 app.listen(PORT, () => {
