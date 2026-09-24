@@ -1,6 +1,6 @@
 "use client";
 import Card from "@/components/shared/card";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Buttonvariants from "@/components/ui/button";
 import SocialActions from "@/components/shared/socialactions";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -9,15 +9,16 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 import { useProfile } from "@/hooks/useProfile";
 import Model from "@/components/shared/model";
+import SmallModel from "@/components/shared/smallmodel";
 import EditModel from "./editmodel";
 import { toast } from "react-hot-toast";
 
 export default function Post({ post, onEdit, onDelete }) {
-  const socialActionsRef = useRef(null);
   const { profile } = useProfile();
   const [seemore, setSeemore] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [triggerShare, setTriggerShare] = useState(false);
   const desc = post?.content || "";
 
   const [isDeleting, setIsDeleting] = useState(false);
@@ -79,7 +80,7 @@ export default function Post({ post, onEdit, onDelete }) {
                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-700 font-semibold text-sm transition"
                     onClick={() => {
                       setShowDropdown(false);
-                      if (socialActionsRef.current) socialActionsRef.current.openSharePopup();
+                      setTriggerShare(true);
                     }}
                   >
                     <SendIcon fontSize="small" />
@@ -121,11 +122,12 @@ export default function Post({ post, onEdit, onDelete }) {
         )}
 
         <SocialActions
-          ref={socialActionsRef}
           postId={post.id}
           initialLikes={post.likesCount}
           initialLiked={post.isLikedByUser}
           initialCommentsCount={post.commentsCount}
+          triggerShare={triggerShare}
+          onShareClose={() => setTriggerShare(false)}
         />
       </Card>
 
@@ -136,7 +138,7 @@ export default function Post({ post, onEdit, onDelete }) {
       )}
 
       {isDeleting && (
-        <Model title="Delete Post" onClose={() => setIsDeleting(false)}>
+        <SmallModel title="Delete Post" onClose={() => setIsDeleting(false)}>
           <div className="flex flex-col gap-8 items-center py-8">
             <span className="font-semibold text-gray-800 text-lg text-center">Are you sure you want to delete this post?</span>
             <div className="flex gap-4 justify-center mt-2 w-full">
@@ -157,7 +159,7 @@ export default function Post({ post, onEdit, onDelete }) {
               </button>
             </div>
           </div>
-        </Model>
+        </SmallModel>
       )}
 
     </>

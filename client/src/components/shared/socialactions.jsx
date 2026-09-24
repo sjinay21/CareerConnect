@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect } from "react";
 import { islikePost, getComments, addComment } from "@/utils/api";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
@@ -9,10 +9,10 @@ import Card from "@/components/shared/card";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import CommentReplies from "./CommentReplies";
-import Model from "@/components/shared/model";
+import SmallModel from "@/components/shared/smallmodel";
 import { toast } from "react-hot-toast";
 
-const SocialActions = forwardRef(({ postId, initialLikes, initialLiked, initialCommentsCount }, ref) => {
+export default function SocialActions({ postId, initialLikes, initialLiked, initialCommentsCount, triggerShare, onShareClose }) {
   const [likes, setLikes] = useState(initialLikes || 0);
   const [liked, setLiked] = useState(initialLiked || false);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount || 0);
@@ -23,9 +23,11 @@ const SocialActions = forwardRef(({ postId, initialLikes, initialLiked, initialC
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [generatedShareUrl, setGeneratedShareUrl] = useState("");
 
-  useImperativeHandle(ref, () => ({
-    openSharePopup
-  }));
+  useEffect(() => {
+    if (triggerShare) {
+      openSharePopup();
+    }
+  }, [triggerShare]);
 
   const generateShareId = (length = 8) => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -253,7 +255,10 @@ const SocialActions = forwardRef(({ postId, initialLikes, initialLiked, initialC
       )}
 
       {showSharePopup && (
-        <Model title="Share post" onClose={() => setShowSharePopup(false)}>
+        <SmallModel title="Share post" onClose={() => {
+          setShowSharePopup(false);
+          if (onShareClose) onShareClose();
+        }}>
           <div className="flex flex-col gap-4 py-6 px-2">
             <div className="break-all text-sm text-gray-700 font-medium">
               {generatedShareUrl}
@@ -264,10 +269,8 @@ const SocialActions = forwardRef(({ postId, initialLikes, initialLiked, initialC
               </Buttonvariants>
             </div>
           </div>
-        </Model>
+        </SmallModel>
       )}
     </Card>
   );
-});
-
-export default SocialActions;
+}
