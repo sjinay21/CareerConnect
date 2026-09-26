@@ -28,4 +28,37 @@ async function updateProfile(id, profileData) {
   return result.rows[0];
 }
 
-export { findByEmail, findById, create, updateProfile };
+async function searchUsers(search, limit, offset) {
+  let whereClause = "";
+  let params = [limit, offset];
+  let countParams = [];
+
+  if (search) {
+      whereClause = `WHERE name ILIKE $3`; 
+      params.push(`%${search}%`);
+      countParams.push(`%${search}%`);
+  }
+
+  const usersQuery = `
+      SELECT id, name, summary
+      FROM users
+      ${whereClause}
+      ORDER BY name ASC
+      LIMIT $1 OFFSET $2
+  `;
+
+  const countQuery = `
+      SELECT COUNT(*)
+      FROM users
+      ${search ? 'WHERE name ILIKE $1' : ''}
+  `;
+
+  const usersResult = await pool.query(usersQuery, params);
+  const countResult = await pool.query(countQuery, countParams);
+  
+  const total = parseInt(countResult.rows[0].count, 10);
+
+  return { users: usersResult.rows, total };
+}
+
+export { findByEmail, findById, create, updateProfile, searchUsers };

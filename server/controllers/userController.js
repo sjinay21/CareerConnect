@@ -1,4 +1,5 @@
 import { updateProfile } from "../models/User.js";
+import { searchUsersService } from "../services/userService.js";
 
 export const getMe = (req, res) => {
   // req.user is populated by authMiddleware
@@ -40,5 +41,20 @@ export const updateMe = async (req, res) => {
   } catch (error) {
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const searchUsers = async (req, res) => {
+  try {
+    const result = await searchUsersService(
+      req.query.search,
+      req.query.page,
+      req.query.limit
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error searching users:", error);
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({ message: error.message || "Internal server error" });
   }
 };

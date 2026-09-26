@@ -10,6 +10,9 @@ function MyNetwork() {
   }
   async function pendingrequest() {
     settext("Pending Request");
+  } 
+  async function users() {
+    settext("Users");
   }
   return (
     <div className="px-3 xl:px-5 py-9 flex gap-5 w-full mt-5 flex-col bg-gray-100">
@@ -28,6 +31,12 @@ function MyNetwork() {
             onClick={pendingrequest}
           >
             Pending Request
+          </Buttonvariants>
+          <Buttonvariants
+            variant={text == "Users" ? "active" : "outline"}
+            onClick={users}
+          >
+            Users
           </Buttonvariants>
         </div>
       </div>
