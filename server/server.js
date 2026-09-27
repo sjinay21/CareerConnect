@@ -11,6 +11,7 @@ import postRoutes from "./routes/postRoutes.js";
 import likeRoutes from "./routes/likeRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import experienceRoutes from "./routes/experienceRoutes.js";
+import connectionRoutes from "./routes/connectionRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,7 @@ app.use("/posts", postRoutes);
 app.use("/like", likeRoutes);
 app.use("/comments", commentRoutes);
 app.use("/experiences", experienceRoutes);
+app.use("/connections", connectionRoutes);
 
 // Start server
 app.listen(PORT, () => {

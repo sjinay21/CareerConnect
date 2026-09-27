@@ -1,19 +1,25 @@
 import { searchUsers as searchUsersModel } from "../models/User.js";
 
-export async function searchUsersService(search = "", rawPage, rawLimit) {
-    const page = Number(rawPage) || 1;
-    let limit = Number(rawLimit) || 10;
+export async function searchUsersService(search = "", rawLimit, rawOffset) {
+    const limit = Number(rawLimit) || 10;
+    const offset = Number(rawOffset) || 0;
 
-    if (page < 1 || limit < 1) {
-        const error = new Error("Page and limit must be positive integers");
+    if (limit < 1 || offset < 0) {
+        const error = new Error("Limit must be positive and offset cannot be negative");
         error.statusCode = 400;
         throw error;
     }
-    const offset = (page - 1) * limit;
 
     const { users, total } = await searchUsersModel(search, limit, offset);
-    const totalPages = Math.ceil(total / limit);
-    const hasNextPage = page < totalPages;
+    const hasNextPage = offset + users.length < total;
 
-    return {users,pagination: {page,limit,total,totalPages,hasNextPage}};
+    return {
+        data: users,
+        pagination: {
+            limit,
+            offset,
+            totalUsers: total,
+            hasNextPage
+        }
+    };
 }

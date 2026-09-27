@@ -1,6 +1,6 @@
-import { updateProfile } from "../models/User.js";
+import { updateProfile,getAllUsersList } from "../models/User.js";
 import { searchUsersService } from "../services/userService.js";
-
+ 
 export const getMe = (req, res) => {
   // req.user is populated by authMiddleware
   res.status(200).json({
@@ -48,13 +48,25 @@ export const searchUsers = async (req, res) => {
   try {
     const result = await searchUsersService(
       req.query.search,
-      req.query.page,
-      req.query.limit
+      req.query.limit,
+      req.query.offset
     );
     res.status(200).json(result);
   } catch (error) {
     console.error("Error searching users:", error);
     const statusCode = error.statusCode || 500;
     res.status(statusCode).json({ message: error.message || "Internal server error" });
+  }
+};
+
+
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await getAllUsersList();
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

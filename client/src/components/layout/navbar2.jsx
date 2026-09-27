@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { logoutUser } from "@/utils/api";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 
-//import Search from "@/components/shared/search";
+import Search from "@/components/shared/search";
 export default function Navbar2() {
   const handleLogout = async () => {
     try {
@@ -36,7 +36,9 @@ export default function Navbar2() {
               className="w-[34px] h-[34px] rounded cursor-pointer"
             />
  
-          {/*<Search />*/}
+          <div className="ml-4">
+            <Search limit={5} />
+          </div>
         </div>
         <div className="flex items-center h-full gap-2 md:gap-4 lg:gap-6">
            <Link

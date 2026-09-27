@@ -1,8 +1,7 @@
 import Card from "@/components/shared/card";
-import { useProfile } from "@/hooks/useProfile";
+import Buttonvariants from "@/components/ui/button";
 
-export default function Profile() {
-  const { profile } = useProfile();
+export default function Profile({ user, showFollowButton = false, connectionStatus = 'none', onFollow }) {
 
   return (
     <Card padding={0}>
@@ -23,9 +22,22 @@ export default function Profile() {
         </div>
       </div>
       <div className="p-5 mt-3">
-        <div className="text-xl font-semibold">{profile.name}</div>
-        <div className="text-sm my-1 text-gray-700">{profile.summary}</div>
-        <div className="text-sm my-1 text-gray-500">{profile.location}</div>
+        <div className="text-xl font-semibold">{user?.name}</div>
+        <div className="text-sm my-1 text-gray-700">{user?.summary}</div>
+        <div className="text-sm my-1 text-gray-500">{user?.location}</div>
+        
+        {showFollowButton && (
+          <div className="mt-4 pt-3 border-t border-gray-100 flex justify-center">
+            <Buttonvariants 
+              variant="outline" 
+              className="w-full"
+              onClick={onFollow}
+              disabled={connectionStatus == 'pending' || connectionStatus == 'connected'}
+            >
+              {connectionStatus == 'connected' ? 'Connected' : connectionStatus == 'pending' ? 'Pending' : 'Follow'}
+            </Buttonvariants>
+          </div>
+        )}
       </div>
     </Card>
   );

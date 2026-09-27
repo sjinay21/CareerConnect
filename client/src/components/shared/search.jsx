@@ -1,4 +1,93 @@
-/*"use client";
+"use client";
+import { useState, useEffect } from "react";
+import { searchUsers } from "@/utils/api";
+
+export default function Search({ onResults, showDropdown = true, limit = 5, offset = 0 }) {
+  const [searchInput, setSearchInput] = useState("");
+  const [timer, setTimer] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // If pagination offset changes (e.g. clicking "Next Page" in MyNetwork), trigger a re-fetch
+  useEffect(() => {
+    if (searchInput) {
+      updateSearch(searchInput, limit, offset);
+    }
+  }, [offset, limit]);
+
+  function debounce(func, delay, value) {
+    if (timer) clearTimeout(timer);
+    const newTimer = setTimeout(() => {
+      func(value, limit, offset);
+    }, delay);
+    setTimer(newTimer);
+  }
+
+  async function updateSearch(value, currentLimit, currentOffset) {
+    if (!value.trim()) {
+      setUsers([]);
+      if (onResults) onResults({ data: [], pagination: null });
+      return;
+    }
+    
+    try {
+      const response = await searchUsers(value, currentLimit, currentOffset);
+      const data = await response.json();
+      setUsers(data.data || []);
+      
+      // Pass the data up to the parent component (used by MyNetwork)
+      if (onResults) {
+        onResults(data);
+      }
+    } catch (error) {
+      console.error("Error searching users:", error);
+    }
+  }
+
+  function handleSearch(value) {
+    setSearchInput(value);
+    setIsDropdownOpen(true);
+    debounce(updateSearch, 500, value);
+  }
+
+  return (
+    <div className="relative">
+          <input
+        type="search"
+        placeholder="Search users..."
+      
+        value={searchInput}
+          onChange={(e) => handleSearch(e.target.value)}
+        onFocus={() => setIsDropdownOpen(true)}
+        onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
+        className="bg-white rounded-sm w-55 h-10 px-4 outline-none border border-black hover:border-black focus:border-black text-black"
+      />
+      
+      {/* Dropdown for Navbar */}
+      {showDropdown && isDropdownOpen && users.length > 0 && (
+        <div className="absolute top-11 left-0 w-80 bg-white border border-gray-200 rounded-md shadow-md z-50 max-h-80 overflow-y-auto">
+          {users.map((user) => (
+            <div
+              key={user.id}
+              className="px-4 py-3 border-b border-white-100 hover:bg-gray-100 cursor-pointer flex flex-col"
+              onClick={() => {  
+                setSearchInput(user.name);
+                setIsDropdownOpen(false);
+              }}
+            >
+              <span className="font-semibold text-gray-800">{user.name}</span>
+              {user.summary && <span className="text-sm text-gray-500">{user.summary}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* 
+// YOUTUBE SEARCH 
+"use client";
 import { useState } from "react";
 
 export default function Search() {
@@ -48,4 +137,5 @@ export default function Search() {
       )}
     </div>
   );
-}*/
+}
+*/

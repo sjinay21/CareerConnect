@@ -163,3 +163,32 @@ export const deleteExperience = async (id) => {
     method: "DELETE",
   });
 };
+
+export const searchUsers = async (search = "", limit = 10, offset = 0) => {
+  return await customFetch(`/users?search=${search}&limit=${limit}&offset=${offset}`, {
+    method: "GET",
+  });
+};
+
+export const getAllUsers = async () => {
+  return await customFetch("/users/all", {
+    method: "GET",
+  });
+};
+export const sendConnectionRequest = async (userId) => {
+  return await customFetch(`/connections/request/${userId}`, {
+    method: "POST",
+  });
+};
+export const updateConnectionStatus = async (connectionId, status) => {
+  return await customFetch(`/connections/${connectionId}/status`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+};
+export const getConnections = async () => {
+  return await customFetch("/connections", {
+    method: "GET",
+  });
+};

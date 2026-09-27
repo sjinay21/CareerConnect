@@ -11,8 +11,10 @@ import { useAppNavigation } from "@/hooks/useNavigation";
 import ArticleCard from "@/components/feed/articlecard";
 import { getPosts, createPost, updatePost, deletePost } from "@/utils/api";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast, showDeleteToast } from "@/components/ui/toastUtils";
+import { useProfile } from "@/hooks/useProfile";
 
 function Feeds() {
+  const { profile } = useProfile();
   const [addPostModel, setAddPostModel] = useState(false);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState(null);
@@ -110,7 +112,7 @@ function Feeds() {
     <div className="px-3 xl:px-5 py-9 flex gap-5 w-full bg-gray-100">
       <div className="w-[21%] sm:block sm:w-[23%] py-5">
         <div className="h-fit">
-          <Profile />
+          <Profile user={profile} />
         </div>
         <div className="w-full my-5">
           <Card padding={1}>

@@ -61,4 +61,13 @@ async function searchUsers(search, limit, offset) {
   return { users: usersResult.rows, total };
 }
 
-export { findByEmail, findById, create, updateProfile, searchUsers };
+async function getAllUsersList() {
+  const result = await pool.query(`
+    SELECT id, name, about, summary, location, skills
+    FROM users
+    ORDER BY name ASC
+  `);
+  return result.rows;
+}
+
+export { findByEmail, findById, create, updateProfile, searchUsers, getAllUsersList };
