@@ -192,3 +192,21 @@ export const getConnections = async () => {
     method: "GET",
   });
 };
+
+export const createOrGetConversation = async (userId) => {
+  return await customFetch("/conversations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId }),
+  });
+};
+export const getUserConversationsList = async () => {
+  return await customFetch("/conversations/Userlist", {
+    method: "GET",
+  });
+};
+export const getConversationMembers = async (conversationId) => {
+  return await customFetch(`/conversations/${conversationId}/members`, {
+    method: "GET",
+  });
+};  
