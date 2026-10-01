@@ -24,17 +24,19 @@ export default function Conversation({ user, onClick }) {
 }
 */
 
-export default function Conversation({ user, onClick }) {
+export default function Conversation({ user, onClick, isSelected }) {
   return (
     <div
       onClick={onClick}
-      className="flex items-center w-full border-b border-gray-400 p-4 hover:bg-gray-200 cursor-pointer"
+      className={`flex items-center w-full border-b p-4 hover:bg-gray-100 cursor-pointer border-gray-300 ${
+        isSelected ? 'bg-gray-200 hover:bg-gray-200' : 'bg-white hover:bg-gray-200'
+      }`}
     >
       <div className="shrink-0 mr-3">
         <img
-          src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+          src={user?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
           alt="image"
-          className="rounded-full h-12 w-12"
+          className="rounded-full h-12 w-12 object-cover bg-white"
         />
       </div>
 

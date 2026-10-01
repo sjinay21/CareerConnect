@@ -38,9 +38,9 @@ export default function AddModel({ onPost }) {
       <div className="flex gap-3 items-center">
         <div className="relative">
           <img
-            className="w-12 h-12 object-cover rounded-full"
+            className="w-12 h-12 object-cover rounded-full bg-white"
             alt="profile"
-            src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+            src={profile?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
           />
         </div>
         <div className="text-2xl font-semibold">{profile?.name || "User"}</div>

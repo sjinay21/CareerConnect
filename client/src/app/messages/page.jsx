@@ -72,7 +72,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Conversation from "@/components/messaging/conversation";
 import Chat from "@/components/messaging/chat";
 import Advertisement from "@/components/feed/advertisement";
-import { getUserConversationsList } from "@/utils/api";
+import { getUserConversationsList, getConversationMessages, getUserProfile } from "@/utils/api";
 import { io } from "socket.io-client";
 function Messages() {
   const [conversations, setConversations] = useState([]);
@@ -81,6 +81,9 @@ function Messages() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [socket, setSocket] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     // 1. Fetch Conversations
@@ -101,35 +104,124 @@ function Messages() {
     }
     fetchConversations();
 
+    // Fetch the actual current user profile to get their ID
+    async function fetchCurrentUser() {
+      try {
+        const response = await getUserProfile();
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUserId(data.id || data.user?.id);
+        }
+      } catch (e) {
+        console.error("Error fetching current user", e);
+      }
+    }
+    fetchCurrentUser();
+
     // 2. Setup Socket.IO Connection
     const newSocket = io("http://localhost:5000", {
       withCredentials: true,
       transports: ["websocket"]
     });
     setSocket(newSocket);
-
     newSocket.on("connect", () => {
       console.log("Socket connected:", newSocket.id);
     });
-
     newSocket.on("connect_error", (err) => {
       console.error("Socket connection error:", err.message);
     });
-
     // Cleanup on unmount
     return () => {
       newSocket.disconnect();
     };
   }, []);
+  // 3. Listen for incoming messages
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewMessage = (newMessage) => {
+      if (newMessage.conversation_id == selectedConversationId) {
+        setMessages((prev) => [...prev, newMessage]);
+        // Let the backend know we saw this message since we're currently looking at the conversation
+        socket.emit("mark_as_seen", { conversationId: selectedConversationId });
+      }
+    };
 
-  const handleSelectConversation = (conversationId, user) => {
+    const handleMessagesSeen = (data) => {
+      if (data.conversationId == selectedConversationId) {
+        setMessages((prev) => 
+          prev.map((msg) => ({ ...msg, is_seen: true }))
+        );
+      }
+    };
+
+    const handleRemoteTyping = (data) => {
+      if (data.conversationId == selectedConversationId) {
+        setIsTyping(true);
+      }
+    };
+
+    const handleRemoteStopTyping = (data) => {
+      if (data.conversationId == selectedConversationId) {
+        setIsTyping(false);
+      }
+    };
+
+    socket.on("new_message", handleNewMessage);
+    socket.on("messages_seen", handleMessagesSeen);
+    socket.on("typing", handleRemoteTyping);
+    socket.on("stop_typing", handleRemoteStopTyping);
+
+    return () => {
+      socket.off("new_message", handleNewMessage);
+      socket.off("messages_seen", handleMessagesSeen);
+      socket.off("typing", handleRemoteTyping);
+      socket.off("stop_typing", handleRemoteStopTyping);
+    };
+  }, [socket, selectedConversationId]);
+
+  const handleSelectConversation = async (conversationId, user) => {
     setSelectedConversationId(conversationId);
     setSelectedUser(user);
-
+    setMessages([]);
+    setIsTyping(false);
+    try {
+      const response = await getConversationMessages(conversationId);
+      if (response.ok) {
+        const data = await response.json();
+        // The backend returns an array of messages directly
+        setMessages(data);
+      }
+    } catch (err) {
+      console.error("Error fetching messages", err);
+    }
     if (socket) {
       socket.emit("join_conversation", { conversationId }, (response) => {
         console.log("Join conversation response:", response);
+        if (!response.success) {
+          console.log(response.message);
+        }
       });
+    }
+  };
+
+  const handleSendMessage = (content) => {
+    if (!socket || !selectedConversationId) return;
+
+    socket.emit("send_message", {
+      conversationId: selectedConversationId,
+      content
+    });
+  };
+
+  const handleTyping = () => {
+    if (socket && selectedConversationId) {
+      socket.emit("typing", { conversationId: selectedConversationId });
+    }
+  };
+
+  const handleStopTyping = () => {
+    if (socket && selectedConversationId) {
+      socket.emit("stop_typing", { conversationId: selectedConversationId });
     }
   };
 
@@ -157,13 +249,22 @@ function Messages() {
                 <Conversation
                   key={conv.conversationId}
                   user={conv.user}
+                  isSelected={selectedConversationId == conv.conversationId}
                   onClick={() => handleSelectConversation(conv.conversationId, conv.user)}
                 />
               ))}
             </div>
             <div className="w-full md:w-[60%] h-full">
               {selectedUser ? (
-                <Chat user={selectedUser} chat={[]} setChats={() => {}} />
+                <Chat
+                  user={selectedUser}
+                  chat={messages}
+                  onSendMessage={handleSendMessage}
+                  currentUserId={currentUserId}
+                  isTyping={isTyping}
+                  onTyping={handleTyping}
+                  onStopTyping={handleStopTyping}
+                />
               ) : (
                 <div className="flex items-center justify-center h-full">
                   Select a conversation

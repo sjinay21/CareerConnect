@@ -44,8 +44,8 @@ export default function Post({ post, onEdit, onDelete }) {
           <div className="flex gap-3">
             <div className="w-12 h-12 rounded-4xl">
               <img
-                className="rounded-4xl w-12 h-12 border-white cursor-pointer"
-                src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+                className="rounded-4xl w-12 h-12 border-white cursor-pointer object-cover bg-white"
+                src={post?.authorProfilePicture || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
                 alt="image"
               />
             </div>

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { islikePost, getComments, addComment } from "@/utils/api";
+import { islikePost, getComments, addComment, getPostLikes } from "@/utils/api";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import SendIcon from "@mui/icons-material/Send";
@@ -11,8 +11,10 @@ import Input from "@/components/ui/input";
 import CommentReplies from "./CommentReplies";
 import SmallModel from "@/components/shared/smallmodel";
 import { toast } from "react-hot-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function SocialActions({ postId, initialLikes, initialLiked, initialCommentsCount, triggerShare, onShareClose }) {
+  const { profile } = useProfile();
   const [likes, setLikes] = useState(initialLikes || 0);
   const [liked, setLiked] = useState(initialLiked || false);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount || 0);
@@ -22,6 +24,8 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
   const [hasFetchedComments, setHasFetchedComments] = useState(false);
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [generatedShareUrl, setGeneratedShareUrl] = useState("");
+  const [showLikesModal, setShowLikesModal] = useState(false);
+  const [likedUsers, setLikedUsers] = useState([]);
 
   useEffect(() => {
     if (triggerShare) {
@@ -65,6 +69,15 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
       if (response.ok) {
         setLiked(data.liked);
         setLikes(data.likesCount);
+
+        // If the likes list is currently open, refresh it so the current user is added/removed instantly
+        if (showLikesModal) {
+          const likesRes = await getPostLikes(postId);
+          const likesData = await likesRes.json();
+          if (likesRes.ok) {
+            setLikedUsers(likesData.likes);
+          }
+        }
       } else {
         setLiked(prevLiked);
         setLikes(prevLikes);
@@ -76,6 +89,24 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
     }
   }
 
+  const handleShowLikes = async () => {
+    if (likes === 0) return;
+    if (showLikesModal) {
+      setShowLikesModal(false);
+      return;
+    }
+    try {
+      const response = await getPostLikes(postId);
+      const data = await response.json();
+      if (response.ok) {
+        setLikedUsers(data.likes);
+        setShowLikesModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching likes:", error);
+    }
+  };
+
   const formatComments = (rawComments) => {
     const comment = {};
     const nestedComments = [];
@@ -83,13 +114,14 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
     // 1. Initialize every comment into a map using a basic for-loop
     for (let i = 0; i < rawComments.length; i++) {
       const c = rawComments[i];
-      comment[c.id] = { 
-        id: c.id, 
-        text: c.content, 
-        authorName: c.name, 
-        authorSummary: c.summary, 
+      comment[c.id] = {
+        id: c.id,
+        text: c.content,
+        authorName: c.name,
+        authorSummary: c.summary,
         created_at: c.created_at,
-        replies: [] 
+        profile_picture_url: c.profile_picture_url,
+        replies: []
       };
     }
 
@@ -128,12 +160,12 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
 
   async function handleonSubmit(e) {
     e.preventDefault();
-    if (commentText.trim() === "") return;
+    if (commentText.trim() == "") return;
 
     try {
       const response = await addComment(postId, commentText);
       const data = await response.json();
-      
+
       if (data.success) {
         const updatedResponse = await getComments(postId);
         const updatedData = await updatedResponse.json();
@@ -152,7 +184,7 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
     try {
       const response = await addComment(postId, replyText, parentCommentId);
       const data = await response.json();
-      
+
       if (data.success) {
         // Refetch the comments nestedComments so the reply gets nested in the right place automatically!
         const updatedResponse = await getComments(postId);
@@ -170,10 +202,12 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
   return (
     <Card padding={0}>
       <div className="px-4 py-3 flex justify-between items-center border-b border-gray-100">
-        <div className="flex gap-1 items-center">
+        <div
+          className="flex gap-1 items-center cursor-pointer group"
+          onClick={handleShowLikes}
+        >
           <ThumbUpIcon sx={{ color: "blue", fontSize: 14 }} />
-
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-black group-hover:text-blue-600 group-hover:underline">
             {likes} Likes
           </span>
         </div>
@@ -181,6 +215,32 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
           {commentsCount} Comments
         </span>
       </div>
+
+      {showLikesModal && (
+        <div className="p-4 ">
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="font-semibold text-sm text-black">Reactions</h4>
+          </div>
+          <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto">
+            {likedUsers.length > 0 ? likedUsers.map((user) => (
+              <div key={user.id} className="flex gap-3 items-center">
+                <img
+                  src={user.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full "
+                />
+                <div className="flex flex-col flex-1 overflow-hidden">
+                  <span className="font-semibold text-sm text-gray-900">{user.name}</span>
+                  <span className="text-xs text-gray-500 ">{user.summary || "LinkedIn Member"}</span>
+                </div>
+              </div>
+            )) : (
+              <div className="text-center text-gray-500 py-4">No likes yet.</div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex border-b border-gray-100">
         <button
           type="button"
@@ -217,11 +277,11 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
 
       {showComments && (
         <div className="p-4">
-    
+
           <div className="flex gap-3 items-center">
             <img
-              src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
-              className="w-10 h-10 rounded-full shrink-0"
+              src={profile?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+              className="w-10 h-10 rounded-full shrink-0 object-cover"
               alt="user"
             />
 
@@ -271,6 +331,9 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
           </div>
         </SmallModel>
       )}
+
+
+
     </Card>
   );
 }

@@ -10,6 +10,8 @@ export function useProfile() {
     location: "",
     about: "",
     skill: "",
+    profile_picture_url: null,
+    banner_url: null,
   });
 
   useEffect(() => {
@@ -26,6 +28,8 @@ export function useProfile() {
             location: data.user.location || prev.location,
             about: data.user.about || prev.about,
             skill: data.user.skills || prev.skill,
+            profile_picture_url: data.user.profile_picture_url || prev.profile_picture_url,
+            banner_url: data.user.banner_url || prev.banner_url,
           }));
         }
       } catch (err) {

@@ -56,7 +56,7 @@ const Notification = () => {
                 >
                   <div className="flex gap-4 items-center">
                     <img
-                      src="/images.jpg"
+                      src={req.user.profilePicture || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
                       alt="profile"
                       className="rounded-full border-2 h-16 w-16 border-white object-cover"
                     />

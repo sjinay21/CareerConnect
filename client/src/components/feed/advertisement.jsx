@@ -10,10 +10,10 @@ export default function Advertisement(){
         <Card padding={0}>
             <div className="relative h-25" >
            <div className="relative w-full h-22 rounded-md">
-                <img src="/images.jpg" alt="profile" className="rounded-t-md h-full w-full"/>
+                <img src={profile?.banner_url || "/images.jpg"} alt="profile" className="rounded-t-md h-full w-full object-cover"/>
                </div> 
-               <div className="absolute top-14 left-6 z-10">
-                   <img src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png" alt="image" className="rounded-full border-2 h-16 w-16 border-white cursor-pointer"/>
+               <div className="absolute top-14 left-6 z-10 bg-white rounded-full">
+                   <img src={profile?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"} alt="image" className="rounded-full border-2 h-16 w-16 border-white cursor-pointer object-cover"/>
                </div>
             </div>
             <div className= "px-5 my-5 mx-auto">

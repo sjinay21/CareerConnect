@@ -60,7 +60,7 @@ export default function Search({ onResults, showDropdown = true, limit = 5, offs
           onChange={(e) => handleSearch(e.target.value)}
         onFocus={() => setIsDropdownOpen(true)}
         onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
-        className="bg-white rounded-sm w-55 h-10 px-4 outline-none border border-black hover:border-black focus:border-black text-black"
+        className="bg-white rounded-sm w-full md:w-56 h-10 px-4 outline-none border border-black hover:border-black focus:border-black text-black"
       />
       
       {/* Dropdown for Navbar */}

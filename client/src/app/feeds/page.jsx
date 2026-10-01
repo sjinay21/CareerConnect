@@ -133,9 +133,9 @@ function Feeds() {
             <div className="flex gap-2 items-center"
             onClick={() => setAddPostModel(true)}>
               <img
-                src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+                src={profile?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
                 alt="image"
-                className="rounded-full border-2 h-16 w-16 border-white cursor-pointer"
+                className="rounded-full border-2 h-16 w-16 border-white cursor-pointer object-cover bg-white"
               />
               <input
                 readOnly

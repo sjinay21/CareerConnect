@@ -20,11 +20,30 @@ async function create(userData) {
 }
 
 async function updateProfile(id, profileData) {
-  const { name, about, summary, location, skills } = profileData;
-  const result = await pool.query(
-    "UPDATE users SET name = $1, about = $2, summary = $3, location = $4, skills = $5 WHERE id = $6 RETURNING id, name, email, about, summary, location, skills",
-    [name, about || null, summary || null, location || null, skills || null, id]
-  );
+  const { name, about, summary, location, skills, profile_picture_url, banner_url } = profileData;
+  
+  let setClauses = ["name = $1", "about = $2", "summary = $3", "location = $4", "skills = $5"];
+  let params = [name, about || null, summary || null, location || null, skills || null];
+
+  if (profile_picture_url) {
+    params.push(profile_picture_url);
+    setClauses.push(`profile_picture_url = $${params.length}`);
+  }
+
+  if (banner_url) {
+    params.push(banner_url);
+    setClauses.push(`banner_url = $${params.length}`);
+  }
+
+  params.push(id);
+  const idParamIndex = params.length;
+
+  const query = `UPDATE users SET ${setClauses.join(", ")} 
+    WHERE id = $${idParamIndex} 
+    RETURNING id, name, email, about, summary, location, skills, profile_picture_url, banner_url
+  `;
+
+  const result = await pool.query(query, params);
   return result.rows[0];
 }
 
@@ -40,7 +59,7 @@ async function searchUsers(search, limit, offset) {
   }
 
   const usersQuery = `
-      SELECT id, name, summary
+      SELECT id, name, summary, profile_picture_url, banner_url
       FROM users
       ${whereClause}
       ORDER BY name ASC
@@ -63,7 +82,7 @@ async function searchUsers(search, limit, offset) {
 
 async function getAllUsersList() {
   const result = await pool.query(`
-    SELECT id, name, about, summary, location, skills
+    SELECT id, name, about, summary, location, skills, profile_picture_url, banner_url
     FROM users
     ORDER BY name ASC
   `);

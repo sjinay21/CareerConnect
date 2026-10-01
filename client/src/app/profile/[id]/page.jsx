@@ -9,7 +9,7 @@ import Experience from "@/components/profile/experience";
 import Textarea from "@/components/ui/textarea";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { updateUserProfile, getPosts, updatePost, deletePost } from "@/utils/api";
+import { updateUserProfile, getPosts, updatePost, deletePost, getConnections } from "@/utils/api";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 import Post from "@/components/feed/post";
 
@@ -23,8 +23,28 @@ function ProfilePage() {
     about: "",
     skill: "",
   });
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
 
   const [posts, setPosts] = useState([]);
+  const [connectionsCount, setConnectionsCount] = useState(0);
+
+  useEffect(() => {
+    async function fetchConnectionsCount() {
+      try {
+        const res = await getConnections();
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            setConnectionsCount(data.length);
+          }
+        }
+      } catch (e) {
+        console.error("Error fetching connections:", e);
+      }
+    }
+    fetchConnectionsCount();
+  }, []);
 
   useEffect(() => {
     if (profile && profile.id) {
@@ -80,21 +100,43 @@ function ProfilePage() {
   }
 
   function openEditModal() {
-    setEditData(profile);
+    setEditData({
+      name: profile.name || "",
+      summary: profile.summary || "",
+      location: profile.location || "",
+      about: profile.about || "",
+      skill: profile.skills || profile.skill || "",
+    });
+    setProfilePictureFile(null);
+    setBannerFile(null);
     setEditProfile(true);
   }
 
   async function handleSave() {
     try {
-      const res = await updateUserProfile({
-        name: editData.name,
-        about: editData.about,
-        summary: editData.summary,
-        location: editData.location,
-        skills: editData.skill,
-      });
+      const formData = new FormData();
+      formData.append("name", editData.name);
+      formData.append("about", editData.about);
+      formData.append("summary", editData.summary);
+      formData.append("location", editData.location);
+      formData.append("skills", editData.skill);
+      
+      if (profilePictureFile) {
+        formData.append("profilePicture", profilePictureFile);
+      }
+      
+      if (bannerFile) {
+        formData.append("banner", bannerFile);
+      }
+
+      const res = await updateUserProfile(formData);
       if (res.ok) {
-        setProfile(editData);
+        const result = await res.json();
+        if (result.user) {
+          setProfile(result.user);
+        } else {
+          setProfile({ ...profile, ...editData });
+        }
         setEditProfile(false);
         showSuccessToast(TOAST_MESSAGES.PROFILE_UPDATED);
       } else {
@@ -120,15 +162,15 @@ function ProfilePage() {
                     <EditIcon />
                   </div>
                   <img
-                    src="/images.jpg"
+                    src={profile.banner_url || "/images.jpg"}
                     alt="cover"
-                    className="w-full h-[200px] rounded-tr-lg rounded-tl-lg"
+                    className="w-full h-[200px] rounded-tr-lg rounded-tl-lg object-cover"
                   />
-                  <div className="absolute object-cover top-36 left-6 z-10">
+                  <div className="absolute object-cover top-36 left-6 z-10 bg-white rounded-full">
                     <img
-                      src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+                      src={profile.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
                       alt="profile"
-                      className="rounded-full border-2 h-20 w-20 border-white cursor-pointer"
+                      className="rounded-full border-2 h-20 w-20 border-white cursor-pointer object-cover"
                     />
                   </div>
                 </div>
@@ -146,7 +188,7 @@ function ProfilePage() {
                       {profile.location}
                     </div>
                     <div className="text-md text-blue-500 w-fit cursor-pointer hover:underline">
-                      2 Connection
+                      {connectionsCount} Connection{connectionsCount !== 1 ? 's' : ''}
                     </div>
                     <div className="md:flex w-full justify-between">
                       <div className="my-5 flex gap-5">
@@ -227,7 +269,7 @@ function ProfilePage() {
         <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50">
           <div className="bg-white w-[90%] md:w-[600px] max-h-[90vh] overflow-y-auto rounded-lg p-6">
             <div className="flex justify-between items-center mb-5">
-              <div className="text-2xl font-semibold">Edit Profile</div>
+              <div className="text-2xl font-semibold text-black">Edit Profile</div>
               <div
                 onClick={() => setEditProfile(false)}
                 className="text-3xl cursor-pointer"
@@ -237,7 +279,7 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold">Name</label>
+              <label className="block mb-1 font-semibold text-black">Name</label>
               <Input
                 type="text"
                 value={editData.name}
@@ -252,7 +294,43 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold">Summary</label>
+              <label className="block mb-1 font-semibold text-black">Profile Picture</label>
+              <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer ">
+                <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
+                  Choose File
+                </div>
+                <span className="text-black text-sm truncate flex-1">
+                  {profilePictureFile ? profilePictureFile.name : "No file chosen"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setProfilePictureFile(e.target.files[0])}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold text-black">Banner Image</label>
+              <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer">
+                <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
+                  Choose File
+                </div>
+                <span className="text-black text-sm flex-1">
+                  {bannerFile ? bannerFile.name : "No file chosen"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setBannerFile(e.target.files[0])}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold text-black">Summary</label>
               <Input
                 type="text"
                 value={editData.summary}
@@ -267,7 +345,7 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold">Location</label>
+              <label className="block mb-1 font-semibold text-black">Location</label>
               <Input
                 type="text"
                 value={editData.location}
@@ -281,7 +359,7 @@ function ProfilePage() {
             </div>
 
             <div className="mb-5">
-              <label className="block mb-1 font-semibold">About</label>
+              <label className="block mb-1 font-semibold text-black">About</label>
               <Textarea
                 value={editData.about}
                 onChange={(e) =>
@@ -295,7 +373,7 @@ function ProfilePage() {
               />
             </div>
             <div className="mb-5">
-              <label className="block mb-1 font-semibold">Skill</label>
+              <label className="block mb-1 font-semibold text-black">Skill</label>
               <Textarea
                 value={editData.skill}
                 onChange={(e) =>

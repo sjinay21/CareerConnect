@@ -28,21 +28,21 @@ async function updateStatus(connectionId, status) {
 
 async function getUserConnections(userId) {
   const receivedQuery = `
-    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location
+    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location, u.profile_picture_url
     FROM connections c
     JOIN users u ON c.requester_id = u.id
     WHERE c.receiver_id = $1 AND c.status = 'pending'
   `;
 
   const sentQuery = `
-    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location
+    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location, u.profile_picture_url
     FROM connections c
     JOIN users u ON c.receiver_id = u.id
     WHERE c.requester_id = $1 AND c.status = 'pending'
   `;
 
   const friendsQuery = `
-    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location
+    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location, u.profile_picture_url
     FROM connections c
     JOIN users u ON u.id = CASE 
       WHEN c.requester_id = $1 THEN c.receiver_id 
@@ -63,7 +63,8 @@ async function getUserConnections(userId) {
       id: row.id,
       name: row.name,
       summary: row.summary,
-      location: row.location
+      location: row.location,
+      profilePicture: row.profile_picture_url
     }
   }));
 

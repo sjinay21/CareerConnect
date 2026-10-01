@@ -3,30 +3,39 @@ import PrivateRoute from '@/Route/privateroute';
 import { useState } from "react";
 import { useAppNavigation } from "@/hooks/useNavigation";
 import Textarea from "@/components/ui/textarea";
+import { createPost } from "@/utils/api";
 
 function Article() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const { goToFeeds } = useAppNavigation();
-  function handlePost() {
+
+  async function handlePost() {
     if (!title.trim()) {
-  return;
-}
-     if (!content.trim()) {
       return;
     }
-    const newArticle = {
-      id: Date.now(),
-      type: "article",
-      title: title,
-      content: content,
-    };
-    const oldPosts = JSON.parse(sessionStorage.getItem("posts")) || [];
-    const updatedPosts = [newArticle, ...oldPosts];
-    sessionStorage.setItem("posts",JSON.stringify(updatedPosts)
-    );
-    goToFeeds();
+    if (!content.trim()) {
+      return;
+    }
+    
+    // Combine title and content as markdown or formatted string
+    const fullContent = `**${title}**\n\n${content}`;
+    
+    const formData = new FormData();
+    formData.append("content", fullContent);
+
+    try {
+      const res = await createPost(formData);
+      if (res.ok) {
+        goToFeeds();
+      } else {
+        console.error("Failed to post article");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="w-full border-b px-6 py-4 flex justify-between items-center">
@@ -54,7 +63,7 @@ function Article() {
           rows="10"
           cols="120"
           onChange={(e) => setContent(e.target.value)}
-         variants="primary"
+          variants="primary"
         />
       </div>
     </div>

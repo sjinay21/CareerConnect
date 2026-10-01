@@ -57,16 +57,16 @@ export default function Profile({ user, showFollowButton = false, connectionStat
       <div className="relative h-[110px]">
         <div className="relative w-full h-[80px] rounded-md">
           <img
-            src="/images.jpg"
+            src={user?.banner_url || "/images.jpg"}
             alt="profile"
             className="rounded-t-md h-full w-full object-cover"
           />
         </div>
         <div className="absolute top-10 left-6 z-10">
           <img
-            src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+            src={user?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
             alt="image"
-            className="rounded-full border-2 h-16 w-16 border-white cursor-pointer object-cover"
+            className="rounded-full border-2 h-16 w-16 border-white cursor-pointer object-cover bg-white"
           />
         </div>
       </div>

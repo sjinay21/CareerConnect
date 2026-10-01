@@ -10,7 +10,7 @@ async function getallPosts(userId) {
   const result = await pool.query(`
     SELECT 
       posts.id, posts.author_id, posts.content, posts.media_url, posts.created_at, 
-      users.name, users.summary,
+      users.name, users.summary, users.profile_picture_url,
       (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) as likes_count,
       EXISTS(SELECT 1 FROM likes WHERE likes.post_id = posts.id AND likes.user_id = $1) as is_liked_by_user,
       (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) as comments_count

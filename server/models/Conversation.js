@@ -29,7 +29,7 @@ async function addMember(conversationId, userId) {
 
 async function getConversationsByUserId(userId) {
     const query = `
-        SELECT cm1.conversation_id, c.created_at, u.id as user_id, u.name, u.summary, u.location
+        SELECT cm1.conversation_id, c.created_at, u.id as user_id, u.name, u.summary, u.location, u.profile_picture_url
         FROM conversations c
         JOIN conversation_members cm1 ON c.id = cm1.conversation_id AND cm1.user_id = $1
         JOIN conversation_members cm2 ON c.id = cm2.conversation_id AND cm2.user_id != $1
@@ -42,7 +42,7 @@ async function getConversationsByUserId(userId) {
 
 async function getConversationMembers(conversationId) {
     const query = `
-        SELECT u.id, u.name, u.summary, u.location
+        SELECT u.id, u.name, u.summary, u.location, u.profile_picture_url
         FROM users u
         JOIN conversation_members cm ON cm.user_id = u.id
         WHERE cm.conversation_id = $1

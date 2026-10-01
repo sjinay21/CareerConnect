@@ -13,13 +13,5 @@ export async function searchUsersService(search = "", rawLimit, rawOffset) {
     const { users, total } = await searchUsersModel(search, limit, offset);
     const hasNextPage = offset + users.length < total;
 
-    return {
-        data: users,
-        pagination: {
-            limit,
-            offset,
-            totalUsers: total,
-            hasNextPage
-        }
-    };
+    return {data: users,pagination: {limit,offset,totalUsers: total,hasNextPage}};
 }

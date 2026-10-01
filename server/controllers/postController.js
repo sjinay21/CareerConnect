@@ -41,6 +41,7 @@ export const createPosts = async (req, res) => {
         authorId: post.author_id,
         authorName: req.user.name,
         authorSummary: req.user.summary,
+        authorProfilePicture: req.user.profile_picture_url,
         content: post.content,
         mediaUrl: post.media_url,
         createdAt: post.created_at
@@ -60,6 +61,7 @@ export const getAllPosts = async (req, res) => {
       authorId: post.author_id,
       authorName: post.name,
       authorSummary: post.summary,
+      authorProfilePicture: post.profile_picture_url,
       content: post.content,
       mediaUrl: post.media_url,
       createdAt: post.created_at,

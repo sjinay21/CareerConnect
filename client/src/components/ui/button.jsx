@@ -7,7 +7,7 @@ function Buttonvariants({ children, variant = "",type = "", onClick,onSubmit }) 
     leftActive:"px-4 py-1 rounded-lg border bg-blue-600 text-white",
     rightActive:"px-4 py-1 rounded-lg border bg-green-700 text-white",
     inactive:"px-4 py-1 rounded-lg border bg-white text-gray-700",
-    cancel:"px-4 py-2 border rounded-lg cursor-pointer hover:bg-gray-100",
+    cancel:"px-4 py-2 border rounded-lg cursor-pointer bg-white text-black",
     expsend:"px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700",
     postsend:"cursor-pointer bg-blue-400 text-white rounded-3xl py-1 px-3",
     post:"text-blue-500 hover:underline",

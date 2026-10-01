@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 
 async function getComment(postId) {
     const query = `
-        SELECT comments.*, users.name, users.summary 
+        SELECT comments.*, users.name, users.summary, users.profile_picture_url 
         FROM comments
         JOIN users ON comments.user_id = users.id
         WHERE comments.post_id = $1

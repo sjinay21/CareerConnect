@@ -21,8 +21,8 @@ export default function CommentReplies({ comment, addReply }) {
     <div className="my-4 w-full">
       <div className="relative flex gap-3 items-start w-full">
         <img
-          className="w-8 h-8 rounded-full shrink-0"
-          src="https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+          className="w-8 h-8 rounded-full shrink-0 object-cover bg-white"
+          src={comment.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
           alt="image"
         />
         <div className="flex-1 min-w-0 pr-24">

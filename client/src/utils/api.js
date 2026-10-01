@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000";
+const API_URL ="http://localhost:5000";
 
 export const customFetch = async (endpoint, options = {}) => {
   options.credentials = "include";
@@ -56,10 +56,12 @@ export const getUserProfile = async () => {
 };
 
 export const updateUserProfile = async (data) => {
+  const isForm = Boolean(data.append);
+  
   return await customFetch("/users/update", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    headers: isForm ? {} : { "Content-Type": "application/json" },
+    body: isForm ? data : JSON.stringify(data),
   });
 };
 
@@ -97,6 +99,12 @@ export const islikePost = async (postId) => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ postId }),
+  });
+};
+
+export const getPostLikes = async (postId) => {
+  return await customFetch(`/like/${postId}/likes`, {
+    method: "GET",
   });
 };
 
@@ -210,3 +218,15 @@ export const getConversationMembers = async (conversationId) => {
     method: "GET",
   });
 };  
+export const getConversationMessages = async (conversationId) => {
+  return await customFetch(`/messages/${conversationId}`, {
+    method: "GET",
+  });
+};      
+export const sendMessage = async (conversationId, content) => {
+  return await customFetch("/messages/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ conversationId, content }),
+  });
+};    
