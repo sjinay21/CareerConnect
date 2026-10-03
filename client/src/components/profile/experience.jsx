@@ -10,7 +10,7 @@ import Model from "@/components/shared/model";
 import { getExperiences, createExperience, updateExperience, deleteExperience } from "@/utils/api";
 import { showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 
-export default function Experience() {
+export default function Experience({ userId, isOwnProfile = true }) {
   const [experiences, setExperiences] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false); 
@@ -26,7 +26,7 @@ export default function Experience() {
 
   const fetchExp = async () => {
     try {
-      const res = await getExperiences();
+      const res = await getExperiences(userId || "");
       if (res.ok) {
         const data = await res.json();
         setExperiences(data.experiences || []);
@@ -38,7 +38,7 @@ export default function Experience() {
 
   useEffect(() => {
     fetchExp();
-  }, []);
+  }, [userId]);
 
   const openAddModal = () => {
     setFormData({ id: null, job_title: "", start_date: "", end_date: "", location: "", company_name: "" });
@@ -105,11 +105,13 @@ export default function Experience() {
       <Card padding={1}>
         <div className="p-2 border-b border-gray-100 flex justify-between items-center">
           <div className="text-xl ">Experience</div>
-          <div className="flex gap-2">
-            <div onClick={openAddModal} className="cursor-pointer p-1 rounded-full transition">
-              <AddIcon fontSize="medium" className="text-black-600" />
+          {isOwnProfile && (
+            <div className="flex gap-2">
+              <div onClick={openAddModal} className="cursor-pointer p-1 rounded-full transition">
+                <AddIcon fontSize="medium" className="text-black-600" />
+              </div>
             </div>
-          </div>
+          )}
         </div>
         
         <div className="flex flex-col mt-2">
@@ -127,12 +129,16 @@ export default function Experience() {
                   <div className="text-xs text-gray-500">{exp.location}</div>
                 </div>
                 <div className="flex gap-2">
-                  <div onClick={() => openEditModal(exp)} className="cursor-pointer p-1.5 rounded-full h-fit">
-                    <CreateIcon fontSize="medium" className="text-black-500" />
-                  </div>
-                  <div onClick={() => handleDelete(exp.id)} className="cursor-pointer p-1.5 rounded-full h-fit">
-                    <DeleteIcon fontSize="medium" className="text-black-500" />
-                  </div>
+                  {isOwnProfile && (
+                    <>
+                      <div onClick={() => openEditModal(exp)} className="cursor-pointer p-1.5 rounded-full h-fit">
+                        <CreateIcon fontSize="medium" className="text-black-500" />
+                      </div>
+                      <div onClick={() => handleDelete(exp.id)} className="cursor-pointer p-1.5 rounded-full h-fit">
+                        <DeleteIcon fontSize="medium" className="text-black-500" />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             ))

@@ -12,7 +12,9 @@ import ArticleCard from "@/components/feed/articlecard";
 import { getPosts, createPost, updatePost, deletePost } from "@/utils/api";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast, showDeleteToast } from "@/components/ui/toastUtils";
 import { useProfile } from "@/hooks/useProfile";
-
+import PhotoOutlinedIcon from '@mui/icons-material/PhotoOutlined';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
 function Feeds() {
   const { profile } = useProfile();
   const [addPostModel, setAddPostModel] = useState(false);
@@ -146,21 +148,21 @@ function Feeds() {
             <div className="w-full flex mt-3">
               <div 
                 onClick={() => setAddPostModel(true)}
-                className="flex gap-2 p-2 justify-center rounded-lg hover:border w-[33%] hover:bg-gray-100 cursor-pointer"
+                className="flex items-center gap-2 p-2 justify-center rounded-lg hover:border w-[33%] hover:bg-gray-100 cursor-pointer font-semibold text-gray-600"
               >
-                Video
+                <VideocamOutlinedIcon className="text-green-600" /> Video
               </div>
               <div 
                 onClick={() => setAddPostModel(true)}
-                className="flex gap-2 p-2 justify-center rounded-lg hover:border w-[33%] hover:bg-gray-100 cursor-pointer"
+                className="flex items-center gap-2 p-2 justify-center rounded-lg hover:border w-[33%] hover:bg-gray-100 cursor-pointer font-semibold text-gray-600"
               >
-                Image
+                <PhotoOutlinedIcon className="text-blue-500" /> Image
               </div>
               <div
                 onClick={goToArticleCreate}
-                className="flex gap-2 p-2 justify-center rounded-lg hover:border w-[33%] hover:bg-gray-100 cursor-pointer"
+                className="flex items-center gap-2 p-2 justify-center rounded-lg hover:border w-[33%] hover:bg-gray-100 cursor-pointer font-semibold text-gray-600"
               >
-                Article
+                <ArticleOutlinedIcon className="text-orange-600" /> Article
               </div>
             </div>
           </Card>

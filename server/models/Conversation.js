@@ -27,7 +27,7 @@ async function addMember(conversationId, userId) {
     return result.rows[0];
 }
 
-async function getConversationsByUserId(userId) {
+async function getConversationsByUserId(userId, limit, offset) {
     const query = `
         SELECT cm1.conversation_id, c.created_at, u.id as user_id, u.name, u.summary, u.location, u.profile_picture_url
         FROM conversations c
@@ -35,9 +35,21 @@ async function getConversationsByUserId(userId) {
         JOIN conversation_members cm2 ON c.id = cm2.conversation_id AND cm2.user_id != $1
         JOIN users u ON u.id = cm2.user_id
         ORDER BY c.created_at DESC
+        LIMIT $2 OFFSET $3
     `;
-    const result = await pool.query(query, [userId]);
-    return result.rows;
+    const countQuery = `
+        SELECT COUNT(*)
+        FROM conversations c
+        JOIN conversation_members cm1 ON c.id = cm1.conversation_id AND cm1.user_id = $1
+    `;
+    const [result, countResult] = await Promise.all([
+        pool.query(query, [userId, limit, offset]),
+        pool.query(countQuery, [userId])
+    ]);
+    return {
+        conversations: result.rows,
+        total: parseInt(countResult.rows[0].count, 10)
+    };
 }
 
 async function getConversationMembers(conversationId) {

@@ -1,6 +1,5 @@
-import { updateProfile, getAllUsersList, findById } from "../models/User.js";
+import { updateProfile, getAllUsersList, findById, searchUsers as searchUsersModel } from "../models/User.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import { searchUsersService } from "../services/userService.js";
  
 export const getMe = (req, res) => {
   // req.user is populated by authMiddleware
@@ -79,16 +78,24 @@ export const updateMe = async (req, res) => {
 
 export const searchUsers = async (req, res) => {
   try {
-    const result = await searchUsersService(
-      req.query.search,
-      req.query.limit,
-      req.query.offset
-    );
-    res.status(200).json(result);
+    const search = req.query.search || "";
+    const limit = Number(req.query.limit) || 10;
+    const offset = Number(req.query.offset) || 0;
+
+    if (limit < 1 || offset < 0) {
+      return res.status(400).json({ message: "Limit must be positive and offset cannot be negative" });
+    }
+
+    const { users, total } = await searchUsersModel(search, limit, offset);
+    const hasNextPage = offset + users.length < total;
+
+    res.status(200).json({
+      data: users,
+      pagination: { limit, offset, totalUsers: total, hasNextPage }
+    });
   } catch (error) {
     console.error("Error searching users:", error);
-    const statusCode = error.statusCode || 500;
-    res.status(statusCode).json({ message: error.message || "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

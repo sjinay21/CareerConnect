@@ -8,6 +8,7 @@ import Buttonvariant from "@/components/ui/button";
 import GoogleLoginComp from "@/components/auth/googlelogincomp";
 import { loginSchema } from "../../schemas/authSchema";
 import { loginUser, getUserProfile } from "../../utils/api";
+import InfoMessage from "@/components/ui/InfoMessage";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 
 function Login() {
@@ -81,14 +82,16 @@ function Login() {
             <Form className="flex flex-col gap-4">
               <div>
                 <label htmlFor="email">Email</label>
-
-                <Field
-                  type="email"
-                  name="email"
-                  id="email"
-                  placeholder="Enter your email"
-                  className="w-full text-xl border-2 rounded-lg px-5 py-1"
-                />
+                <div className="relative">
+                  <Field
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    className="w-full text-xl border-2 rounded-lg px-5 py-1 pr-10"
+                  />
+                  <InfoMessage message="Please use the email address associated with your LinkedIn account" />
+                </div>
 
                 {errors.email && touched.email ? (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -97,14 +100,16 @@ function Login() {
 
               <div>
                 <label htmlFor="password">Password</label>
-
-                <Field
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="Enter your password"
-                  className="w-full text-xl border-2 rounded-lg px-5 py-1"
-                />
+                <div className="relative">
+                  <Field
+                    type="password"
+                    name="password"
+                    id="password"
+                    placeholder="Enter your password"
+                    className="w-full text-xl border-2 rounded-lg px-5 py-1 pr-10"
+                  />
+                  <InfoMessage message="Password must be at least 6 characters long and can contain letters and numbers" />
+                </div>
 
                 {errors.password && touched.password ? (
                   <p className="text-red-500 text-sm mt-1">{errors.password}</p>

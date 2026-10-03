@@ -158,7 +158,7 @@ import { useState,useEffect } from "react";
 import Profile from "@/components/profile/profile";
 import Buttonvariants from "@/components/ui/button";
 import Search from "@/components/shared/search";
-import { getAllUsers, getConnections, sendConnectionRequest, createOrGetConversation } from "@/utils/api";
+import { getAllUsers, getConnections, sendConnectionRequest, createOrGetConversation, updateConnectionStatus } from "@/utils/api";
 import { useProfile } from "@/hooks/useProfile";
 import { useRouter } from 'next/navigation';
 
@@ -221,6 +221,21 @@ function MyNetwork() {
       }
     } catch (error) {
       console.error("Error creating/getting conversation", error);
+    }
+  };
+
+  const handleAccept = async (connectionId) => {
+    try {
+      const response = await updateConnectionStatus(connectionId, 'accepted');
+      if (response.ok) {
+        const connRes = await getConnections();
+        if (connRes.ok) {
+          const cData = await connRes.json();
+          setConnections(cData);
+        }
+      }
+    } catch (error) {
+      console.error("Error accepting connection:", error);
     }
   };
 
@@ -292,17 +307,21 @@ function MyNetwork() {
               </div>
             )) : <div className="text-gray-500 mt-10">No users found.</div>;
           } else if (text == "Pending Request") {
-            usersToDisplay = [...connections.sent.map(c => c.user), ...connections.received.map(c => c.user)];
-            return usersToDisplay.length > 0 ? usersToDisplay.map((user) => (
-              <div key={user.id} className="md:w-[23%] h-270px sm:w-full">
+            const pendingItems = [
+              ...connections.sent.map(c => ({ user: c.user, type: 'sent', connectionId: c.connectionId })), 
+              ...connections.received.map(c => ({ user: c.user, type: 'received', connectionId: c.connectionId }))
+            ];
+            return pendingItems.length > 0 ? pendingItems.map((item) => (
+              <div key={item.user.id} className="md:w-[23%] h-270px sm:w-full">
                 <Profile 
-                  user={user} 
+                  user={item.user} 
                   showFollowButton={true} 
-                  connectionStatus="pending" 
-                  onMessage={() => handleMessage(user.id)}
+                  connectionStatus={item.type == 'received' ? 'received' : 'pending'} 
+                  onMessage={() => handleMessage(item.user.id)}
+                  onAccept={() => handleAccept(item.connectionId)}
                 />
               </div>
-            )) : <div className="text-gray-500 mt-10">No pending requests sent.</div>;
+            )) : <div className="text-gray-500 mt-10">No pending requests.</div>;
           } else if (text == "Catchup your friend") {
             usersToDisplay = connections.friends.map(c => c.user);
             return usersToDisplay.length > 0 ? usersToDisplay.map((user) => (

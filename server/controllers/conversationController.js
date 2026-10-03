@@ -24,8 +24,8 @@ export const createOrGetConversationController = async (req, res) => {
 export const getUserConversationsController = async (req, res) => {
     try {
         const userId = req.user.id;
-        const conversations = await getUserConversations(userId);
-        res.status(200).json({ conversations });
+        const result = await getUserConversations(userId, req.query.limit, req.query.offset);
+        res.status(200).json(result);
     } catch (error) {
         console.error("Error fetching user conversations:", error);
         res.status(500).json({ message: "Internal server error" });

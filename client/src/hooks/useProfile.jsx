@@ -9,7 +9,7 @@ export function useProfile() {
     summary: "",
     location: "",
     about: "",
-    skill: "",
+    skills: "",
     profile_picture_url: null,
     banner_url: null,
   });
@@ -20,17 +20,7 @@ export function useProfile() {
         const res = await getUserProfile();
         if (res.ok) {
           const data = await res.json();
-          setProfile((prev) => ({
-            ...prev,
-            id: data.user.id,
-            name: data.user.name || prev.name,
-            summary: data.user.summary || prev.summary,
-            location: data.user.location || prev.location,
-            about: data.user.about || prev.about,
-            skill: data.user.skills || prev.skill,
-            profile_picture_url: data.user.profile_picture_url || prev.profile_picture_url,
-            banner_url: data.user.banner_url || prev.banner_url,
-          }));
+          setProfile(data.user);
         }
       } catch (err) {
         console.error("Failed to load profile data", err);

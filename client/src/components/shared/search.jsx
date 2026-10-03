@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { searchUsers } from "@/utils/api";
-
+import SearchTwoToneIcon from '@mui/icons-material/SearchTwoTone';
+import Input from "@/components/ui/input";
 export default function Search({ onResults, showDropdown = true, limit = 5, offset = 0 }) {
   const [searchInput, setSearchInput] = useState("");
   const [timer, setTimer] = useState(null);
@@ -52,18 +53,19 @@ export default function Search({ onResults, showDropdown = true, limit = 5, offs
 
   return (
     <div className="relative">
-          <input
+       <div className="absolute inset-y-0 left-3 flex items-center text-black">
+        <SearchTwoToneIcon />
+      </div>
+      <Input
         type="search"
+        variant="search"
         placeholder="Search users..."
-      
         value={searchInput}
-          onChange={(e) => handleSearch(e.target.value)}
+        onChange={(e) => handleSearch(e.target.value)}
         onFocus={() => setIsDropdownOpen(true)}
         onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
-        className="bg-white rounded-sm w-full md:w-56 h-10 px-4 outline-none border border-black hover:border-black focus:border-black text-black"
       />
-      
-      {/* Dropdown for Navbar */}
+
       {showDropdown && isDropdownOpen && users.length > 0 && (
         <div className="absolute top-11 left-0 w-80 bg-white border border-gray-200 rounded-md shadow-md z-50 max-h-80 overflow-y-auto">
           {users.map((user) => (

@@ -7,8 +7,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 
 import Search from "@/components/shared/search";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function Navbar2() {
+  const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -32,7 +34,7 @@ export default function Navbar2() {
     { href: "/mynetwork", label: "My network" },
     { href: "/messages", label: "Message" },
     { href: "/notification", label: "Notification" },
-    { href: "/profile/abc123", label: "Me" },
+    { href: `/profile/${profile?.id}`, label: "Me" },
   ];
 
   return (

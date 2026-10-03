@@ -1,7 +1,8 @@
 import { searchUsers as searchUsersModel } from "../models/User.js";
+import { PAGINATION_LIMITS } from "../config/paginationConfig.js";
 
 export async function searchUsersService(search = "", rawLimit, rawOffset) {
-    const limit = Number(rawLimit) || 10;
+    const limit = Number(rawLimit) || PAGINATION_LIMITS.USERS;
     const offset = Number(rawOffset) || 0;
 
     if (limit < 1 || offset < 0) {

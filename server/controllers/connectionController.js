@@ -38,7 +38,7 @@ export const updateStatus = async (req, res) => {
 
 export const getConnections = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.query.userId || req.user.id;
     const connections = await fetchUserConnections(userId);
 
     res.status(200).json(connections);

@@ -14,7 +14,7 @@ export const createMessageController = async (req, res) => {
 export const getMessageController = async (req, res) => {
     try {
         const { conversationId } = req.params;
-        const messages = await getMessages(conversationId, req.user.id);
+        const messages = await getMessages(conversationId, req.user.id, req.query.limit, req.query.offset);
         res.status(200).json(messages);
     } catch (error) {
         console.error("Error fetching messages:", error.message);

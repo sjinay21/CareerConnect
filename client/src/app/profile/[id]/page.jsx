@@ -9,19 +9,27 @@ import Experience from "@/components/profile/experience";
 import Textarea from "@/components/ui/textarea";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { updateUserProfile, getPosts, updatePost, deletePost, getConnections } from "@/utils/api";
+import { useParams, useRouter } from "next/navigation";
+import { getUserById, getUserProfile, getPosts, updatePost, deletePost, getConnections, updateUserProfile, createOrGetConversation } from "@/utils/api";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 import Post from "@/components/feed/post";
 
 function ProfilePage() {
-  const { profile, setProfile } = useProfile();
+
+  const params = useParams();
+  const router = useRouter();
+  const userId = params.id;
+  const { profile: loggedInUser } = useProfile();
+  const [profile, setProfile] = useState(null);
+
+  const isOwnProfile = loggedInUser?.id != null && profile?.id != null && loggedInUser.id == profile.id;
   const [editProfile, setEditProfile] = useState(false);
   const [editData, setEditData] = useState({
     name: "",
     summary: "",
     location: "",
     about: "",
-    skill: "",
+    skills: "",
   });
   const [profilePictureFile, setProfilePictureFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
@@ -30,41 +38,69 @@ function ProfilePage() {
   const [connectionsCount, setConnectionsCount] = useState(0);
 
   useEffect(() => {
-    async function fetchConnectionsCount() {
+    if (!userId || !loggedInUser?.id) return;
+    
+    async function loadAllProfileData() {
       try {
-        const res = await getConnections();
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            setConnectionsCount(data.length);
+        // 1. Fetch the user's profile
+        let profileRes;
+        if (userId == loggedInUser.id) {
+          profileRes = await getUserProfile();
+        } else {
+          profileRes = await getUserById(userId);
+        }
+        
+        let currentProfileId = null;
+        if (profileRes.ok) {
+          const data = await profileRes.json();
+          if (data.user) {
+            setProfile(data.user);
+            currentProfileId = data.user.id;
           }
         }
-      } catch (e) {
-        console.error("Error fetching connections:", e);
-      }
-    }
-    fetchConnectionsCount();
-  }, []);
 
-  useEffect(() => {
-    if (profile && profile.id) {
-      async function fetchUserPosts() {
-        try {
-          const res = await getPosts();
-          if (res.ok) {
-            const data = await res.json();
-            const filteredPosts = (data.posts || []).filter(p => p.authorId == profile.id);
-            setPosts(filteredPosts);
+        // 2. Fetch the connections count
+        if (currentProfileId) {
+          try {
+            const connRes = await getConnections(currentProfileId);
+            if (connRes.ok) {
+              const connData = await connRes.json();
+              if (connData && connData.friends) {
+                setConnectionsCount(connData.friends.length);
+              }
+            }
+          } catch (e) {
+            console.error("Error fetching connections:", e);
           }
-        } catch (e) {
-          console.error("Error fetching user posts:", e);
         }
+
+        // 3. Fetch the user's posts
+        if (currentProfileId) {
+          try {
+            const postsRes = await getPosts();
+            if (postsRes.ok) {
+              const postsData = await postsRes.json();
+              const filteredPosts = (postsData.posts || []).filter(p => p.authorId == currentProfileId);
+              setPosts(filteredPosts);
+            }
+          } catch (e) {
+            console.error("Error fetching user posts:", e);
+          }
+        }
+
+      } catch (error) {
+        showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
       }
-      fetchUserPosts();
     }
-  }, [profile?.id]);
+
+    loadAllProfileData();
+  }, [userId, loggedInUser?.id]);
 
   async function handleUpdatePost(postId, content, formData) {
+    if (!isOwnProfile) {
+      return { success: false, message: "You cannot edit this post." };
+    }
+
     const selectedPost = posts.find((post) => post.id == postId);
     if (!formData.has("postId")) formData.append("postId", postId);
 
@@ -85,6 +121,8 @@ function ProfilePage() {
   }
 
   async function handleDeletePost(postId) {
+    if (!isOwnProfile) return;
+
     try {
       const res = await deletePost(postId);
       if (res.ok) {
@@ -99,13 +137,27 @@ function ProfilePage() {
     }
   }
 
+  const handleMessage = async () => {
+    if (!profile?.id) return;
+    try {
+      const response = await createOrGetConversation(profile.id);
+      if (response.ok) {
+        router.push('/messages');
+      }
+    } catch (error) {
+      console.error("Error creating/getting conversation", error);
+    }
+  };
+
   function openEditModal() {
+    if (!isOwnProfile) return;
+
     setEditData({
       name: profile.name || "",
       summary: profile.summary || "",
       location: profile.location || "",
       about: profile.about || "",
-      skill: profile.skills || profile.skill || "",
+      skills: profile.skills || "",
     });
     setProfilePictureFile(null);
     setBannerFile(null);
@@ -113,13 +165,15 @@ function ProfilePage() {
   }
 
   async function handleSave() {
+    if (!isOwnProfile) return;
+
     try {
       const formData = new FormData();
       formData.append("name", editData.name);
       formData.append("about", editData.about);
       formData.append("summary", editData.summary);
       formData.append("location", editData.location);
-      formData.append("skills", editData.skill);
+      formData.append("skills", editData.skills);
       
       if (profilePictureFile) {
         formData.append("profilePicture", profilePictureFile);
@@ -147,6 +201,14 @@ function ProfilePage() {
     }
   }
 
+  if (!profile) {
+    return (
+      <div className="w-full min-h-[80vh] flex items-center justify-center bg-gray-100">
+        <div className="text-lg text-gray-600">Profile not found.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full flex flex-col px-3 xl:px-5 py-5 bg-gray-100">
       <div className="flex justify-between">
@@ -155,12 +217,14 @@ function ProfilePage() {
             <Card padding={0}>
               <div className="w-full h-fit">
                 <div className="relative w-full h-[200px]">
-                  <div
-                    onClick={openEditModal}
-                    className="absolute top-3 right-3 z-20 w-[35px] h-[35px] rounded-full bg-white flex justify-center items-center cursor-pointer"
-                  >
-                    <EditIcon />
-                  </div>
+                  {isOwnProfile && (
+                    <div
+                      onClick={openEditModal}
+                      className="absolute top-3 right-3 z-20 w-[35px] h-[35px] rounded-full bg-white flex justify-center items-center cursor-pointer"
+                    >
+                      <EditIcon />
+                    </div>
+                  )}
                   <img
                     src={profile.banner_url || "/images.jpg"}
                     alt="cover"
@@ -175,21 +239,25 @@ function ProfilePage() {
                   </div>
                 </div>
                 <div className="mt-10 relative px-8 py-2">
-                  <div
-                    onClick={openEditModal}
-                    className="absolute top-0 right-3 z-20 w-[35px] h-[35px] rounded-full bg-white flex justify-center items-center cursor-pointer"
-                  >
-                    <EditIcon />
-                  </div>
+                  {isOwnProfile && (
+                    <div
+                      onClick={openEditModal}
+                      className="absolute top-0 right-3 z-20 w-[35px] h-[35px] rounded-full bg-white flex justify-center items-center cursor-pointer"
+                    >
+                      <EditIcon />
+                    </div>
+                  )}
                   <div className="w-full">
                     <div className="text-2xl">{profile.name}</div>
                     <div className="text-gray-700">{profile.summary}</div>
                     <div className="text-sm text-gray-500">
                       {profile.location}
                     </div>
-                    <div className="text-md text-blue-500 w-fit cursor-pointer hover:underline">
-                      {connectionsCount} Connection{connectionsCount !== 1 ? 's' : ''}
-                    </div>
+                    {isOwnProfile && (
+                      <div className="text-md text-blue-500 w-fit cursor-pointer hover:underline">
+                        {connectionsCount} Connection{connectionsCount !== 1 ? 's' : ''}
+                      </div>
+                    )}
                     <div className="md:flex w-full justify-between">
                       <div className="my-5 flex gap-5">
                         <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold">
@@ -200,12 +268,19 @@ function ProfilePage() {
                         </div>
                       </div>
                       <div className="my-5 flex gap-5">
-                        <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold">
-                          Message
-                        </div>
-                        <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold">
-                          Connect
-                        </div>
+                        {!isOwnProfile && (
+                          <>
+                            <div 
+                              onClick={handleMessage}
+                              className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold"
+                            >
+                              Message
+                            </div>
+                            <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold">
+                              Connect
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -218,9 +293,11 @@ function ProfilePage() {
             <Card padding={1}>
               <div className="flex items-center justify-between">
                 <div className="text-xl">About</div>
-                <div onClick={openEditModal} className="cursor-pointer">
-                  <EditIcon />
-                </div>
+                {isOwnProfile && (
+                  <div onClick={openEditModal} className="cursor-pointer">
+                    <EditIcon />
+                  </div>
+                )}
               </div>
               <div className="text-gray-700 text-md w-[80%]">
                 {profile.about}
@@ -231,17 +308,24 @@ function ProfilePage() {
             <Card padding={1}>
               <div className="flex items-center justify-between">
                 <div className="text-xl">Skill</div>
-                <div onClick={openEditModal} className="cursor-pointer">
-                  <EditIcon />
-                </div>
+                {isOwnProfile && (
+                  <div onClick={openEditModal} className="cursor-pointer">
+                    <EditIcon />
+                  </div>
+                )}
               </div>
                   <div className="text-gray-700 text-md w-[80%]">
-                {profile.skill}
+                {profile.skills}
               </div>
             </Card>
           </div>
 
-          <Experience />
+          {/* OLD IMPLEMENTATION */}
+          {/* Replaced because Experience needs to fetch dynamic user's experiences, not just the logged in user's */}
+          {/* <Experience /> */}
+
+          {/* NEW IMPLEMENTATION */}
+          <Experience userId={profile.id} isOwnProfile={isOwnProfile} />
 
           {posts.length > 0 && (
             <div className="my-5 flex flex-col gap-5">
@@ -250,8 +334,8 @@ function ProfilePage() {
                 <Post 
                   key={post.id} 
                   post={post} 
-                  onEdit={handleUpdatePost} 
-                  onDelete={handleDeletePost} 
+                  onEdit={isOwnProfile ? handleUpdatePost : undefined} 
+                  onDelete={isOwnProfile ? handleDeletePost : undefined} 
                 />
               ))}
             </div>
@@ -265,7 +349,7 @@ function ProfilePage() {
         </div>
       </div>
 
-      {editProfile && (
+      {editProfile && isOwnProfile && (
         <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50">
           <div className="bg-white w-[90%] md:w-[600px] max-h-[90vh] overflow-y-auto rounded-lg p-6">
             <div className="flex justify-between items-center mb-5">
@@ -373,13 +457,13 @@ function ProfilePage() {
               />
             </div>
             <div className="mb-5">
-              <label className="block mb-1 font-semibold text-black">Skill</label>
+              <label className="block mb-1 font-semibold text-black">Skills</label>
               <Textarea
-                value={editData.skill}
+                value={editData.skills}
                 onChange={(e) =>
                   setEditData({
                     ...editData,
-                    skill: e.target.value,
+                    skills: e.target.value,
                   })
                 }
                 rows="5"

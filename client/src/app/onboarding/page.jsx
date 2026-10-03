@@ -4,6 +4,7 @@ import React from "react";
 import { useAppNavigation } from "@/hooks/useNavigation";
 import { updateUserProfile, logoutUser } from "@/utils/api";
 import Buttonvariants from "@/components/ui/button";
+import InfoMessage from "@/components/ui/InfoMessage";
 import { Formik, Form, Field } from "formik";
 import { onboardingSchema } from "@/schemas/authSchema";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
@@ -80,12 +81,15 @@ function Onboarding() {
                 <label className="block mb-1 font-semibold text-gray-700">Summary
                   <span className="text-red-500">*</span>
                 </label>
-                <Field
-                  type="text"
-                  name="summary"
-                  placeholder="e.g. Software Engineer at Tech Lead"
-                  className="w-full text-md border-2 rounded-lg px-3 py-2"
-                />
+                <div className="relative">
+                  <Field
+                    type="text"
+                    name="summary"
+                    placeholder="e.g. Software Engineer at Tech Lead"
+                    className="w-full text-md border-2 rounded-lg px-3 py-2 pr-10"
+                  />
+                  <InfoMessage message="Provide a short professional headline" />
+                </div>
                 {errors.summary && touched.summary ? (
                   <p className="text-red-500 text-sm mt-1">{errors.summary}</p>
                 ) : null}
@@ -95,12 +99,15 @@ function Onboarding() {
                 <label className="block mb-1 font-semibold text-gray-700">Location
                   <span className="text-red-500">*</span>
                 </label>
-                <Field
-                  type="text"
-                  name="location"
-                  placeholder="e.g. Surat, India"
-                  className="w-full text-md border-2 rounded-lg px-3 py-2"
-                />
+                <div className="relative">
+                  <Field
+                    type="text"
+                    name="location"
+                    placeholder="e.g. Surat, India"
+                    className="w-full text-md border-2 rounded-lg px-3 py-2 pr-10"
+                  />
+                  <InfoMessage message="Enter your current city and country" />
+                </div>
                 {errors.location && touched.location ? (
                   <p className="text-red-500 text-sm mt-1">{errors.location}</p>
                 ) : null}
@@ -110,13 +117,16 @@ function Onboarding() {
                 <label className="block mb-1 font-semibold text-gray-700">About Me
                   <span className="text-red-500">*</span>
                 </label>
-                <Field
-                  as="textarea"
-                  name="about"
-                  placeholder="Tell everyone a little bit about yourself..."
-                  rows="4"
-                  className="w-full text-md border-2 rounded-lg px-3 py-2 resize-none"
-                />
+                <div className="relative">
+                  <Field
+                    as="textarea"
+                    name="about"
+                    placeholder="Tell everyone a little bit about yourself..."
+                    rows="4"
+                    className="w-full text-md border-2 rounded-lg px-3 py-2 pr-10 resize-none"
+                  />
+                  <InfoMessage message="Write a brief overview of your professional background" />
+                </div>
                 {errors.about && touched.about ? (
                   <p className="text-red-500 text-sm mt-1">{errors.about}</p>
                 ) : null}
@@ -126,13 +136,16 @@ function Onboarding() {
                 <label className="block mb-1 font-semibold text-gray-700">Skills  
                   <span className="text-red-500">*</span>
                 </label>
-                <Field
-                  as="textarea"
-                  name="skills"
-                  placeholder="e.g. HTML, CSS, JavaScript, React"
-                  rows="2"
-                  className="w-full text-md border-2 rounded-lg px-3 py-2 resize-none"
-                />
+                <div className="relative">
+                  <Field
+                    as="textarea"
+                    name="skills"
+                    placeholder="e.g. HTML, CSS, JavaScript, React"
+                    rows="2"
+                    className="w-full text-md border-2 rounded-lg px-3 py-2 pr-10 resize-none"
+                  />
+                  <InfoMessage message="List your key technical and soft skills" />
+                </div>
                 {errors.skills && touched.skills ? (
                   <p className="text-red-500 text-sm mt-1">{errors.skills}</p>
                 ) : null}

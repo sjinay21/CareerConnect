@@ -1,4 +1,5 @@
 const API_URL ="http://localhost:5000";
+import { PAGINATION_LIMITS } from "./paginationConfig";
 
 export const customFetch = async (endpoint, options = {}) => {
   options.credentials = "include";
@@ -51,6 +52,11 @@ export const isAuthenticated = () => {
 
 export const getUserProfile = async () => {
   return await customFetch("/users/profile", {
+    method: "GET",
+  });
+};
+export const getUserById = async (userId) => {
+  return await customFetch(`/users/${userId}`, {
     method: "GET",
   });
 };
@@ -172,7 +178,7 @@ export const deleteExperience = async (id) => {
   });
 };
 
-export const searchUsers = async (search = "", limit = 10, offset = 0) => {
+export const searchUsers = async (search = "", limit = PAGINATION_LIMITS.USERS, offset = 0) => {
   return await customFetch(`/users?search=${search}&limit=${limit}&offset=${offset}`, {
     method: "GET",
   });
@@ -195,8 +201,9 @@ export const updateConnectionStatus = async (connectionId, status) => {
     body: JSON.stringify({ status }),
   });
 };
-export const getConnections = async () => {
-  return await customFetch("/connections", {
+export const getConnections = async (userId = "") => {
+  const query = userId ? `?userId=${userId}` : "";
+  return await customFetch(`/connections${query}`, {
     method: "GET",
   });
 };
@@ -208,8 +215,8 @@ export const createOrGetConversation = async (userId) => {
     body: JSON.stringify({ userId }),
   });
 };
-export const getUserConversationsList = async () => {
-  return await customFetch("/conversations/Userlist", {
+export const getUserConversationsList = async (limit = PAGINATION_LIMITS.CONVERSATIONS, offset = 0) => {
+  return await customFetch(`/conversations/Userlist?limit=${limit}&offset=${offset}`, {
     method: "GET",
   });
 };
@@ -218,8 +225,8 @@ export const getConversationMembers = async (conversationId) => {
     method: "GET",
   });
 };  
-export const getConversationMessages = async (conversationId) => {
-  return await customFetch(`/messages/${conversationId}`, {
+export const getConversationMessages = async (conversationId, limit = PAGINATION_LIMITS.MESSAGES, offset = 0) => {
+  return await customFetch(`/messages/${conversationId}?limit=${limit}&offset=${offset}`, {
     method: "GET",
   });
 };      

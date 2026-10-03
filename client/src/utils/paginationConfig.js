@@ -1,0 +1,5 @@
+export const PAGINATION_LIMITS = {
+  USERS: 10,
+  CONVERSATIONS: 2,
+  MESSAGES: 10,
+};

@@ -9,14 +9,25 @@ async function createMessage(conversationId, senderId, content) {
     const result = await pool.query(query,[conversationId, senderId,content,false]);
     return result.rows[0];
 }
-async function getMessagesByConversation(conversationId) {
+async function getMessagesByConversation(conversationId, limit, offset) {
     const query = `
         SELECT * FROM messages 
         WHERE conversation_id = $1 
-        ORDER BY created_at ASC
+        ORDER BY created_at DESC
+        LIMIT $2 OFFSET $3
     `;
-    const result = await pool.query(query, [conversationId]);
-    return result.rows;
+    const countQuery = `
+        SELECT COUNT(*) FROM messages
+        WHERE conversation_id = $1
+    `;
+    const [result, countResult] = await Promise.all([
+        pool.query(query, [conversationId, limit, offset]),
+        pool.query(countQuery, [conversationId])
+    ]);
+    return {
+        messages: result.rows,
+        total: parseInt(countResult.rows[0].count, 10)
+    };
 }
 async function markMessagesAsSeen(conversationId, userId) {
     const query = `
