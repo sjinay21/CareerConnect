@@ -9,9 +9,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 import { useProfile } from "@/hooks/useProfile";
 import Model from "@/components/shared/model";
-import SmallModel from "@/components/shared/smallmodel";
 import EditModel from "./editmodel";
-import { toast } from "react-hot-toast";
+import CloseIcon from "@mui/icons-material/Close";
 
 export default function Post({ post, onEdit, onDelete }) {
   const { profile } = useProfile();
@@ -138,28 +137,43 @@ export default function Post({ post, onEdit, onDelete }) {
       )}
 
       {isDeleting && (
-        <SmallModel title="Delete Post" onClose={() => setIsDeleting(false)}>
-          <div className="flex flex-col gap-8 items-center py-8">
-            <span className="font-semibold text-gray-800 text-lg text-center">Are you sure you want to delete this post?</span>
-            <div className="flex gap-4 justify-center mt-2 w-full">
-              <button
-                className="w-[120px] py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition text-sm font-medium border border-gray-300"
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden relative">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-black">Delete Post</h2>
+              <button 
                 onClick={() => setIsDeleting(false)}
+                className="text-red-500 hover:text-red-700 cursor-pointer"
               >
-                Cancel
-              </button>
-              <button
-                className="w-[120px] py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm font-medium shadow-sm"
-                onClick={async () => {
-                  setIsDeleting(false);
-                  await onDelete(post.id);
-                }}
-              >
-                Delete
+                <CloseIcon />
               </button>
             </div>
+            
+            <div className="p-4 md:p-6">
+              <p className="text-lg text-center text-black font-medium mb-8 pb-6">
+                Are you sure you want to delete this post?
+              </p>
+              
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setIsDeleting(false)}
+                  className="px-6 py-2 bg-gray-50 border border-black rounded-md text-black font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setIsDeleting(false);
+                    await onDelete(post.id);
+                  }}
+                  className="px-6 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
-        </SmallModel>
+        </div>
       )}
 
     </>

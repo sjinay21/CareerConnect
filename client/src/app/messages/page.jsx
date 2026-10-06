@@ -72,20 +72,7 @@ function Messages() {
     }
   };
 
-  /* 
-   * OLD CODE (Replaced to fix race condition where auto-fill and initial fetch run concurrently):
-   * useEffect(() => {
-   *   const container = document.getElementById("conversations-container");
-   *   if (container && hasMoreConversations && !loadingConversations) {
-   *     if (container.scrollHeight <= container.clientHeight) {
-   *       loadMoreConversations();
-   *     }
-   *   }
-   * }, [conversations, hasMoreConversations, loadingConversations]);
-   */
-  // 3. MINIMUM REQUIRED FIX: Auto-fill sequentially ONLY AFTER initial load finishes
   useEffect(() => {
-    // Only attempt auto-fill if conversations have loaded (length > 0)
     // This ensures offset=0 completely finishes before any auto-fill begins.
     if (conversations.length > 0 && hasMoreConversations && !loadingConversations && !error) {
       const container = document.getElementById("conversations-container");

@@ -21,6 +21,7 @@
     "react-dom": "^19.3.0",
     "react-hot-toast": "^2.6.1",
     "react-md": "^7.0.8",
+    "react-window": "^2.3.3",
     "socket.io-client": "^4.8.4",
     "tailwindcss": "^4.3.3",
     "yup": "^1.7.1"

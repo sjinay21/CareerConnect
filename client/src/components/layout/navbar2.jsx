@@ -12,6 +12,7 @@ import { useProfile } from "@/hooks/useProfile";
 export default function Navbar2() {
   const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -26,6 +27,8 @@ export default function Navbar2() {
     } catch (error) {
       console.error(error);
       showErrorToast("Logout failed");
+    } finally {
+      setIsLogoutModalOpen(false);
     }
   };
 
@@ -34,11 +37,12 @@ export default function Navbar2() {
     { href: "/mynetwork", label: "My network" },
     { href: "/messages", label: "Message" },
     { href: "/notification", label: "Notification" },
-    { href: `/profile/${profile?.id}`, label: "Me" },
+     { href: `/profile/${profile?.id}`, label: "Me" },
+     { href: `/jobs`, label: "Jobs" },
   ];
 
   return (
-    <nav className="bg-white w-full border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white w-full border-b border-gray-200 top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center h-[52px]">
 
         <div className="flex items-center flex-1 md:flex-none">
@@ -60,14 +64,14 @@ export default function Navbar2() {
             <Link
               key={link.label}
               href={link.href}
-              className="flex flex-col items-center justify-center text-gray-500 hover:text-black cursor-pointer h-full min-w-[60px] md:min-w-[80px] hover:border-b-2 hover:border-black"
+              className="flex flex-col items-center justify-center font-semibold text-lg text-gray-900 hover:text-black cursor-pointer h-full min-w-[60px] md:min-w-[80px] hover:border-b-2 hover:border-black"
             >
               <span className="text-xs mt-1">{link.label}</span>
             </Link>
           ))}
           <button
-            onClick={handleLogout}
-            className="flex flex-col items-center justify-center text-gray-500 hover:text-black cursor-pointer h-full min-w-[60px] md:min-w-[80px] hover:border-b-2 hover:border-black"
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="flex flex-col items-center justify-center text-gray-900 font-semibold text-lg hover:text-red-500 cursor-pointer h-full min-w-[60px] md:min-w-[80px] hover:border-b-2 hover:border-black"
           >
             <span className="text-xs mt-1">Logout</span>
           </button>
@@ -99,12 +103,49 @@ export default function Navbar2() {
             <button
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                handleLogout();
+                setIsLogoutModalOpen(true);
               }}
               className="text-left text-gray-600 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-md font-medium w-full"
             >
               Logout
             </button>
+          </div>
+        </div>
+      )}
+  
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden ">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Logout</h2>
+              <button 
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="text-red-500 hover:text-red-700 transition-colors"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+            
+            <div className="p-6 md:p-8">
+              <p className="text-lg text-center text-black font-medium mb-8 pb-6">
+              Are you sure you want to logout?
+              </p>
+              
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="px-6 py-2 bg-gray-50 border border-black rounded-md text-black font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-6 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

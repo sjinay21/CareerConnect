@@ -10,6 +10,9 @@ export const ROUTES = {
   NOTIFICATION: "/notification",
   ARTICLE_CREATE: "/article/create",
   ONBOARDING: "/onboarding",
+  JOBS: "/jobs",
+  JOB_CREATE: "/job_create",
+  JOB_TRACKER: "/job_tracker",
 };
 
 export const useAppNavigation = () => {
@@ -27,5 +30,9 @@ export const useAppNavigation = () => {
     goToArticleCreate: () => router.push(ROUTES.ARTICLE_CREATE),
     goToOnboarding: () => router.push(ROUTES.ONBOARDING),
     goToProfile: (id) => router.push(`/profile/${id}`),
+    goToJobs: () => router.push(ROUTES.JOBS),
+    goToJob: (id) => router.push(`/jobs/${id}`),
+    goToJobCreate: () => router.push(ROUTES.JOB_CREATE),
+    goToJobTracker: () => router.push(ROUTES.JOB_TRACKER),
   };
 };

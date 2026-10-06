@@ -16,9 +16,9 @@ import experienceRoutes from "./routes/experienceRoutes.js";
 import connectionRoutes from "./routes/connectionRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import jobsRoutes from "./routes/jobsRoutes.js";
 import { socketAuthMiddleware } from "./middleware/socketAuthMiddleware.js";
 import { initializeSocket } from "./socket/socket.js";
-
 const app = express();
 const httpServer = createServer(app);
 
@@ -58,7 +58,7 @@ app.use("/experiences", experienceRoutes);
 app.use("/connections", connectionRoutes);
 app.use("/conversations", conversationRoutes);
 app.use("/messages", messageRoutes);
-
+app.use("/jobs",jobsRoutes)
 // Socket Authentication Middleware
 io.use(socketAuthMiddleware);
 
