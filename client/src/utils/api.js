@@ -11,7 +11,7 @@ export const customFetch = async (endpoint, options = {}) => {
   const fullUrl = API_URL + endpoint;
   const response = await fetch(fullUrl, options);
   
-  if (response.status === 401 && typeof window !== "undefined" && !window.location.href.includes("login")) {
+  if (response.status == 401 && typeof window !== "undefined" && !window.location.href.includes("login")) {
     localStorage.removeItem("user");
     window.location.href = "/login";
   }
@@ -237,3 +237,37 @@ export const sendMessage = async (conversationId, content) => {
     body: JSON.stringify({ conversationId, content }),
   });
 };    
+export const createJob = async (data) => {
+  return await customFetch("/jobs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};  
+export const deleteJob = async (id) => {
+  return await customFetch(`/jobs/${id}`, {
+    method: "DELETE",
+  });
+};
+export const getAllJobs = async () => {
+  return await customFetch("/jobs", {
+    method: "GET",
+  });
+};  
+export const getJobById = async (id) => {
+  return await customFetch(`/jobs/${id}`, {
+    method: "GET",
+  });
+};
+
+export const applyToJob = async (id) => {
+  return await customFetch(`/jobs/${id}/apply`, {
+    method: "POST",
+  });
+};
+
+export const getJobApplicants = async () => {
+  return await customFetch("/jobs/jobtracker/applicants", {
+    method: "GET",
+  });
+};

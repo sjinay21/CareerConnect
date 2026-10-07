@@ -3,8 +3,10 @@
 import PrivateRoute from '@/Route/privateroute';
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { dummyJobs, formatSalary, applyToDummyJob, removeDummyJob } from "@/data/dummyJobs";
+import { formatSalary } from "@/data/dummyJobs";
+import { getAllJobs, getJobById, deleteJob, applyToJob } from "@/utils/api";
 import { useAppNavigation } from "@/hooks/useNavigation";
+import { useProfile } from "@/hooks/useProfile";
 import BusinessIcon from '@mui/icons-material/Business';
 import CloseIcon from '@mui/icons-material/Close';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -18,32 +20,89 @@ import Buttonvariants from "@/components/ui/button";
 function JobDetailsPage() {
   const params = useParams();
   const { goToJob } = useAppNavigation();
-  const [dummyState, setDummyState] = useState(0);
+  const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, message: "" });
+  const { profile } = useProfile();
 
   useEffect(() => {
-    if (params.id) {
-      const job = dummyJobs.find(j => j.id.toString() == params.id);
-      if (job) {
-        setSelectedJob(job);
-      } else {
-        setSelectedJob(dummyJobs[0]);
+    const fetchAllJobs = async () => {
+      try {
+        const response = await getAllJobs();
+        if (response.ok) {
+          const data = await response.json();
+          if (data.jobs) setJobs(data.jobs);
+        }
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
       }
-    }
+    };
+    fetchAllJobs();
+  }, []);
+
+  useEffect(() => {
+    const fetchSelectedJob = async () => {
+      if (params.id) {
+        try {
+          const response = await getJobById(params.id);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.job) {
+              setSelectedJob(data.job);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching specific job:", error);
+        }
+      }
+    };
+    fetchSelectedJob();
   }, [params.id]);
 
   const handleJobClick = (job) => {
     goToJob(job.id);
   };
 
-  const handleApply = () => {
-    applyToDummyJob(selectedJob.id);
-    setSelectedJob({ ...selectedJob, has_applied: true });
+  const handleApply = async () => {
+    try {
+      const response = await applyToJob(selectedJob.id);
+      const data = await response.json();
+
+      if (response.ok) {
+        const newCount = (selectedJob.applicant_count || 0) + 1;
+        
+        setSelectedJob({
+          ...selectedJob,
+          has_applied: true,
+          applicant_count: newCount
+        });
+        
+        setJobs(jobs.map(j => 
+          j.id == selectedJob.id 
+            ? { ...j, has_applied: true, applicant_count: newCount } 
+            : j
+        ));
+        
+        setAlertModal({ isOpen: true, message: data.message || "Application submitted successfully" });
+      } else {
+        setAlertModal({ isOpen: true, message: data.message || "Error applying to job" });
+      }
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      setAlertModal({ isOpen: true, message: "Server error occurred" });
+    }
   };
 
-  const handleDeleteJob = (e, jobId) => {
-    removeDummyJob(jobId);
-    setDummyState(prev => prev + 1);
+  const handleDeleteJob = async (e, jobId) => {
+    try {
+      await deleteJob(jobId);
+      setJobs(jobs.filter(j => j.id != jobId));
+      if (selectedJob?.id == jobId) {
+        setSelectedJob(null); // Clear right pane if active job was deleted
+      }
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    }
   };
 
   return (
@@ -58,7 +117,7 @@ function JobDetailsPage() {
             </div>
             
             <div className="flex-1">
-              {dummyJobs.map(job => {
+              {jobs.map(job => {
                 const isSelected = selectedJob?.id == job.id;
                 return (
                   <div 
@@ -79,19 +138,22 @@ function JobDetailsPage() {
                        
                        
                        <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                          {isSelected && <span className="font-semibold text-gray-600">Viewed • </span>}
-                          <span>{job.posted_at}</span>
+                          {isSelected && <span className="font-semibold text-gray-600">Viewed</span>}
+                          {isSelected && (job.post_at || job.easy_apply) && <span className="mx-1">•</span>}
+                          {job.post_at && <span className="font-semibold text-gray-600">{job.post_at}</span>}
+                          {job.post_at && job.easy_apply && <span className="mx-1">•</span>}
                           {job.easy_apply && (
-                            <>
-                               <span className="mx-1">•</span>
-                               <span className="text-blue-900 font-semibold flex items-center gap-1">
-                                  <img 
-                                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10" 
-                                    alt="in" 
-                                    className="w-[14px] h-[14px] rounded-sm"
-                                  /> Easy Apply
-                               </span>
-                            </>
+                            <span className="text-blue-900 font-semibold flex items-center gap-1">
+                               {job.has_applied ? "Applied" : (
+                                 <>
+                                   <img 
+                                     src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10" 
+                                     alt="in" 
+                                     className="w-[14px] h-[14px] rounded-sm"
+                                   /> Easy Apply
+                                 </>
+                               )}
+                            </span>
                           )}
                        </div>
                     </div>
@@ -116,13 +178,21 @@ function JobDetailsPage() {
                     <div className="w-8 h-8 bg-gray-100 border border-gray-200 shadow-sm flex items-center justify-center">
                       <BusinessIcon className="text-gray-500" sx={{ fontSize: 20 }} />
                     </div>
-                    <span className="font-semibold text-black text-sm hover:text-[#0a66c2] hover:underline cursor-pointer">{selectedJob.company_name}</span>
+                    <span className="font-semibold text-black text-sm hover:text-blue-900 hover:underline cursor-pointer">{selectedJob.company_name}</span>
                   </div>
                   
                   <div className="flex items-center gap-3 shrink-0">
-                    {selectedJob.has_applied ? (
+                    {selectedJob.has_applied || jobs.find(j => j.id == selectedJob.id)?.has_applied ? (
                       <Buttonvariants variant="jobApplied" disabled>
                         Applied
+                      </Buttonvariants>
+                    ) : selectedJob.applicant_limit && (selectedJob.applicant_count || 0) >= selectedJob.applicant_limit ? (
+                      <Buttonvariants variant="jobApplied" disabled>
+                        Limit Reached
+                      </Buttonvariants>
+                    ) : selectedJob.posted_by == profile?.id ? (
+                      <Buttonvariants variant="jobApplied" disabled>
+                        Your Job
                       </Buttonvariants>
                     ) : (
                       <Buttonvariants 
@@ -143,9 +213,17 @@ function JobDetailsPage() {
                   <h1 className="text-2xl font-bold text-black mb-1">{selectedJob.title}</h1>
                   <div className="flex items-center flex-wrap gap-1 text-sm text-black mb-2">
                      <span>{selectedJob.company_name}</span> • 
-                     <span className="text-gray-600">{selectedJob.location}</span> • 
-                     <span className="text-gray-600">{selectedJob.posted_at}</span> • 
-                     <span className="text-blue-900 font-semibold hover:underline cursor-pointer">{selectedJob.applicants}</span>
+                     <span className="text-black">{selectedJob.location}</span>
+                     {selectedJob.post_at && (
+                       <>
+                         <span>•</span>
+                         <span className="text-black">{selectedJob.post_at}</span>
+                       </>
+                     )}
+                     <span>•</span>
+                     <span className="text-blue-900 font-semibold hover:underline cursor-pointer">
+                       {selectedJob.applicant_count || 0} applicants
+                     </span>
                   </div>
                 </div>
 
@@ -184,7 +262,7 @@ function JobDetailsPage() {
                 <div>
                    <h2 className="text-lg font-semibold text-black mb-4">About the job</h2>
                    <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                     {selectedJob.about}
+                     {selectedJob.description || selectedJob.about || "No description provided."}
                    </div>
                 </div>
                 
@@ -208,6 +286,37 @@ function JobDetailsPage() {
           </div>
         </div>
       </div>
+      
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden relative">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-black">Notification</h2>
+              <button 
+                onClick={() => setAlertModal({ isOpen: false, message: "" })}
+                className="text-red-500 hover:text-red-700 cursor-pointer"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+            
+            <div className="p-4 md:p-6">
+              <p className="text-lg text-center text-black font-medium mb-8 pb-6">
+                {alertModal.message}
+              </p>
+              
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setAlertModal({ isOpen: false, message: "" })}
+                  className="px-6 py-2 bg-[#0a66c2] text-white rounded-md font-semibold hover:bg-blue-800 transition-colors"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

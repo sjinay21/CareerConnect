@@ -3,7 +3,7 @@
 import React from 'react';
 import PrivateRoute from '@/Route/privateroute';
 import { useAppNavigation } from "@/hooks/useNavigation";
-import { addDummyJob } from "@/data/dummyJobs";
+import { createJob } from "@/utils/api";
 import { Formik, Form, Field } from "formik";
 import { jobCreateSchema } from "@/schemas/jobSchema";
 import Buttonvariants from "@/components/ui/button";
@@ -23,20 +23,28 @@ function JobCreatePage() {
     currency: "INR",
     salary_period: "year",
     easy_apply: true,
+    post_at: "",
+    applicant_limit: "",
   };
 
-  const handleSubmit = (values) => {
-    const newJob = {
-      ...values,
-      id: Date.now(), // Dummy ID
-      posted_by: 999, // Dummy user ID
-      posted_at: "Just now",
-      applicants: "0 applicants",
-      has_applied: false,
-    };
-
-    addDummyJob(newJob);
-    goToJob(newJob.id);
+  const handleSubmit = async (values, { setSubmitting }) => {
+    try {
+      const response = await createJob(values);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.job) {
+          // Redirect to the newly created job details page
+          goToJob(data.job.id);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("Error from backend:", errorData);
+      }
+    } catch (error) {
+      console.error("Error creating job:", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -68,17 +76,44 @@ function JobCreatePage() {
                   ) : null}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Company Name <span className="text-red-500">*</span></label>
-                  <Field 
-                    type="text" 
-                    name="company_name"
-                    className="w-full border border-gray-400 rounded p-2 focus:border-gray-700 focus:outline-none transition-colors"
-                    placeholder="e.g. Google"
-                  />
-                  {errors.company_name && touched.company_name ? (
-                    <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
-                  ) : null}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Company Name <span className="text-red-500">*</span></label>
+                    <Field 
+                      type="text" 
+                      name="company_name"
+                      className="w-full border border-gray-400 rounded p-2 "
+                      placeholder="e.g. Google"
+                    />
+                    {errors.company_name && touched.company_name ? (
+                      <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Posted Date <span className="text-red-500">*</span></label>
+                    <Field 
+                      type="text" 
+                      name="post_at"
+                      className="w-full border border-gray-400 rounded p-2"
+                      placeholder="e.g. 13 Oct"
+                    />
+                    {errors.post_at && touched.post_at ? (
+                      <p className="text-red-500 text-sm mt-1">{errors.post_at}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Applicant Limit </label>
+                    <Field 
+                      type="number" 
+                      name="applicant_limit"
+                      className="w-full border border-gray-400 rounded p-2"
+                      placeholder="e.g. 100"
+                      min="1"
+                    />
+                    {errors.applicant_limit && touched.applicant_limit ? (
+                      <p className="text-red-500 text-sm mt-1">{errors.applicant_limit}</p>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div>

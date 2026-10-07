@@ -3,8 +3,8 @@ import PrivateRoute from '@/Route/privateroute';
 import { useAppNavigation } from "@/hooks/useNavigation";
 import Profile from "@/components/profile/profile";
 import { useProfile } from "@/hooks/useProfile";
-import { dummyJobs, removeDummyJob } from "@/data/dummyJobs";
-import { useState } from "react";
+import { getAllJobs, deleteJob } from "@/utils/api";
+import { useState, useEffect } from "react";
 import BusinessIcon from '@mui/icons-material/Business';
 import CloseIcon from '@mui/icons-material/Close';
 import WorkIcon from '@mui/icons-material/Work';
@@ -22,11 +22,35 @@ function JobsListingPage() {
     goToJob(jobId);
   };
 
-  const [dummyState, setDummyState] = useState(0);
+  const [jobs, setJobs] = useState([]);
+  
+  const fetchJobs = async () => {
+    try {
+      const response = await getAllJobs();
+      if (response.ok) {
+        const data = await response.json();
+        if (data.jobs) {
+          setJobs(data.jobs);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
 
-  const handleDeleteJob = (e, jobId) => {
-    removeDummyJob(jobId);
-    setDummyState(prev => prev + 1);
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const handleDeleteJob = async (e, jobId) => {
+    e.stopPropagation(); // prevent clicking the job row
+    try {
+      await deleteJob(jobId);
+      // Remove it from UI instantly
+      setJobs(jobs.filter(job => job.id != jobId));
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    }
   };
 
   return (
@@ -80,7 +104,7 @@ function JobsListingPage() {
              </div>
 
              <div>
-               {dummyJobs.slice(0, 3).map(job => (
+               {jobs.slice(0, 3).map(job => (
                  <div 
                    key={job.id} 
                    onClick={() => handleJobClick(job.id)}
@@ -99,18 +123,16 @@ function JobsListingPage() {
                       
 
                       <div className="flex items-center gap-1 mt-2 text-[12px] text-gray-500">
-                         <span>{job.posted_at}</span>
+                         {job.post_at && <span>{job.post_at}</span>}
+                         {job.post_at && job.easy_apply && <span className="mx-1">•</span>}
                          {job.easy_apply && (
-                           <>
-                              <span className="mx-1">•</span>
-                              <span className="text-[#0a66c2] font-semibold flex items-center gap-1">
-                                 <img 
-                                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10" 
-                                    alt="in" 
-                                    className="w-[14px] h-[14px] rounded-sm"
-                                 /> Easy Apply
-                              </span>
-                           </>
+                           <span className="text-[#0a66c2] font-semibold flex items-center gap-1">
+                              <img 
+                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10" 
+                                alt="in" 
+                                className="w-[14px] h-[14px] rounded-sm"
+                              /> Easy Apply
+                           </span>
                          )}
                       </div>
                    </div>
@@ -126,7 +148,7 @@ function JobsListingPage() {
              </div>
              
              <div 
-                onClick={() => dummyJobs.length > 0 && handleJobClick(dummyJobs[0].id)}
+                onClick={() => jobs.length > 0 && handleJobClick(jobs[0].id)}
                 className="p-4 hover-border-blue-600 cursor-pointer text-center text-white bg-blue-600 font-semibold text-[15px] border-t border-gray-200"
              >
                 Show all 
