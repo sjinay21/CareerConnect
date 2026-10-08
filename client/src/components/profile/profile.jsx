@@ -78,7 +78,16 @@ export default function Profile({ user, showFollowButton = false, connectionStat
         
         {showFollowButton && (
           <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col gap-2 justify-center">
-            {connectionStatus === 'received' ? (
+            {connectionStatus == 'expired' ? (
+              <div className="w-full text-center">
+                <div className="text-sm font-semibold text-red-600 mb-1">
+                  Request Expired
+                </div>
+                <div className="text-xs text-gray-500">
+                  The receiver didn't respond to your connection request within the allowed time.
+                </div>
+              </div>
+            ) : connectionStatus == 'received' ? (
               <Buttonvariants 
                 variant="active" 
                 className="w-full bg-green-700 hover:bg-green-800 text-white"
@@ -87,16 +96,18 @@ export default function Profile({ user, showFollowButton = false, connectionStat
                 Accept
               </Buttonvariants>
             ) : (
-              <Buttonvariants 
-                variant="outline" 
-                className="w-full"
-                onClick={onFollow}
-                disabled={connectionStatus == 'pending' || connectionStatus == 'connected'}
-              >
-                {connectionStatus == 'connected' ? 'Connected' : connectionStatus == 'pending' ? 'Pending' : 'Follow'}
-              </Buttonvariants>
+              <div className="w-full">
+                <Buttonvariants 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={onFollow}
+                  disabled={connectionStatus == 'pending' || connectionStatus == 'connected'}
+                >
+                  {connectionStatus == 'connected' ? 'Connected' : connectionStatus == 'pending' ? 'Pending' : 'Follow'}
+                </Buttonvariants>
+              </div>
             )}
-            {onMessage && (
+            {onMessage && connectionStatus !== 'expired' && (
               <Buttonvariants 
                 variant="outline" 
                 className="w-full"

@@ -70,13 +70,7 @@ function JobDetailsPage() {
 
       if (response.ok) {
         const newCount = (selectedJob.applicant_count || 0) + 1;
-        
-        setSelectedJob({
-          ...selectedJob,
-          has_applied: true,
-          applicant_count: newCount
-        });
-        
+        setSelectedJob({...selectedJob,has_applied: true,applicant_count: newCount});
         setJobs(jobs.map(j => 
           j.id == selectedJob.id 
             ? { ...j, has_applied: true, applicant_count: newCount } 

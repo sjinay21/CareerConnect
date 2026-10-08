@@ -19,6 +19,8 @@ import messageRoutes from "./routes/messageRoutes.js";
 import jobsRoutes from "./routes/jobsRoutes.js";
 import { socketAuthMiddleware } from "./middleware/socketAuthMiddleware.js";
 import { initializeSocket } from "./socket/socket.js";
+import initializeCronJobs from "./utils/cronJobs.js";
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -64,6 +66,10 @@ io.use(socketAuthMiddleware);
 
 // Initialize Socket.IO handlers
 initializeSocket(io);
+
+// Initialize cron jobs
+initializeCronJobs();
+
 const PORT = process.env.PORT || 5000;
 
 httpServer.listen(PORT, () => {

@@ -18,31 +18,31 @@ async function createRequest(requesterId, receiverId) {
   return result.rows[0];
 }
 
-async function updateStatus(connectionId, status) {
+async function updateStatus(connectionId, status, cooldownUntil = null) {
   const result = await pool.query(
-    "UPDATE connections SET status = $1 WHERE id = $2 RETURNING *",
-    [status, connectionId]
+    "UPDATE connections SET status = $1, cooldown_until = $2 WHERE id = $3 RETURNING *",
+    [status, cooldownUntil, connectionId]
   );
   return result.rows[0];
 }
 
 async function getUserConnections(userId) {
   const receivedQuery = `
-    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location, u.profile_picture_url
+    SELECT c.id AS connection_id, c.status, c.created_at, c.cooldown_until, u.id, u.name, u.summary, u.location, u.profile_picture_url
     FROM connections c
     JOIN users u ON c.requester_id = u.id
     WHERE c.receiver_id = $1 AND c.status = 'pending'
   `;
 
   const sentQuery = `
-    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location, u.profile_picture_url
+    SELECT c.id AS connection_id, c.status, c.created_at, c.cooldown_until, u.id, u.name, u.summary, u.location, u.profile_picture_url
     FROM connections c
     JOIN users u ON c.receiver_id = u.id
-    WHERE c.requester_id = $1 AND c.status = 'pending'
+    WHERE c.requester_id = $1 AND c.status IN ('pending', 'expired', 'rejected')
   `;
 
   const friendsQuery = `
-    SELECT c.id AS connection_id, u.id, u.name, u.summary, u.location, u.profile_picture_url
+    SELECT c.id AS connection_id, c.status, c.created_at, c.cooldown_until, u.id, u.name, u.summary, u.location, u.profile_picture_url
     FROM connections c
     JOIN users u ON u.id = CASE 
       WHEN c.requester_id = $1 THEN c.receiver_id 
@@ -59,6 +59,9 @@ async function getUserConnections(userId) {
 
   const mapToUserFormat = (rows) => rows.map(row => ({
     connectionId: row.connection_id,
+    status: row.status,
+    created_at: row.created_at,
+    cooldown_until: row.cooldown_until,
     user: {
       id: row.id,
       name: row.name,
@@ -75,4 +78,21 @@ async function getUserConnections(userId) {
   };
 }
 
-export { findConnectionBetween, createRequest, updateStatus, getUserConnections };
+async function recreateRequest(connectionId, requesterId, receiverId) {
+  await pool.query(
+    "UPDATE connections SET requester_id = $2, receiver_id = $3, status = 'pending', created_at = CURRENT_TIMESTAMP, cooldown_until = NULL WHERE id = $1",
+    [connectionId, requesterId, receiverId]
+  );
+  
+  return { id: connectionId, requester_id: requesterId, receiver_id: receiverId, status: 'pending' };
+}
+
+async function expireOldRequests(expiryDate, cooldownUntil) {
+  const result = await pool.query(
+    `UPDATE connections SET status = 'expired', cooldown_until = $2 WHERE status = 'pending' AND created_at < $1`,
+    [expiryDate, cooldownUntil]
+  );
+
+  return result.rowCount;
+}
+export { findConnectionBetween, createRequest, updateStatus, getUserConnections, expireOldRequests, recreateRequest };

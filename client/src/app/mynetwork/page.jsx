@@ -242,7 +242,8 @@ function MyNetwork() {
 
   const getConnectionStatus = (userId) => {
     if (connections.friends.some(c => c.user.id == userId)) return 'connected';
-    if (connections.sent.some(c => c.user.id == userId)) return 'pending';
+    const sentReq = connections.sent.find(c => c.user.id == userId);
+    if (sentReq) return sentReq.status == 'expired' ? 'expired' : 'pending';
     if (connections.received.some(c => c.user.id == userId)) return 'pending';
     return 'none';
   };
@@ -308,15 +309,15 @@ function MyNetwork() {
             )) : <div className="text-gray-500 mt-10">No users found.</div>;
           } else if (text == "Pending Request") {
             const pendingItems = [
-              ...connections.sent.map(c => ({ user: c.user, type: 'sent', connectionId: c.connectionId })), 
-              ...connections.received.map(c => ({ user: c.user, type: 'received', connectionId: c.connectionId }))
+              ...connections.sent.map(c => ({ user: c.user, type: 'sent', connectionId: c.connectionId, status: c.status })), 
+              ...connections.received.map(c => ({ user: c.user, type: 'received', connectionId: c.connectionId, status: c.status }))
             ];
             return pendingItems.length > 0 ? pendingItems.map((item) => (
               <div key={item.user.id} className="md:w-[23%] h-270px sm:w-full">
                 <Profile 
                   user={item.user} 
                   showFollowButton={true} 
-                  connectionStatus={item.type == 'received' ? 'received' : 'pending'} 
+                  connectionStatus={item.type == 'received' ? 'received' : (item.status === 'expired' ? 'expired' : 'pending')} 
                   onMessage={() => handleMessage(item.user.id)}
                   onAccept={() => handleAccept(item.connectionId)}
                 />
