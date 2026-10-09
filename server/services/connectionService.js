@@ -36,11 +36,18 @@ async function updateConnectionStatus(connectionId, status) {
 
   let cooldownUntil = null;
   if (status =='rejected') {
-    const cooldownHours = parseInt(process.env.FRIEND_REQUEST_COOLDOWN_HOURS) || 5;
-    cooldownUntil = new Date(Date.now() + cooldownHours * 60 * 60 * 1000);
+    const cooldownMinutes = parseInt(process.env.FRIEND_REQUEST_COOLDOWN_MINUTES) || 5;
+    cooldownUntil = new Date(Date.now() + cooldownMinutes * 60 * 1000);
   }
 
   const updatedConnection = await updateStatus(connectionId, status, cooldownUntil);
+  
+  if (!updatedConnection) {
+    const error = new Error("This connection request is no longer pending or has expired.");
+    error.statusCode = 400;
+    throw error;
+  }
+
   return updatedConnection;
 }
 
@@ -51,19 +58,19 @@ async function fetchUserConnections(userId) {
 async function processExpiredRequests() {
   const expiryMins = parseInt(process.env.FRIEND_REQUEST_EXPIRY_MINUTES) || 1;
   const expiryDate = new Date(Date.now() - expiryMins * 60 * 1000);
-  const cooldownHours = parseInt(process.env.FRIEND_REQUEST_COOLDOWN_HOURS) || 5;
+  const cooldownMinutes = parseInt(process.env.FRIEND_REQUEST_COOLDOWN_MINUTES) || 5;
 
-const cooldownUntil = new Date(Date.now() + cooldownHours * 60 * 60 * 1000);
-  try {
-    const expiredCount = await expireOldRequests(expiryDate, cooldownUntil);
-    if (expiredCount > 0) {
-      console.log(`Successfully expired ${expiredCount} pending friend request(s).`);
-    }
-    return expiredCount;
-  } catch (error) {
-    console.error("Error processing expired friend requests:", error);
-    throw error;
+  const cooldownUntil = new Date(Date.now() + cooldownMinutes * 60 * 1000);
+   try {
+  const expiredCount = await expireOldRequests(expiryDate, cooldownUntil);
+  if (expiredCount > 0) {
+    console.log(`Successfully expired ${expiredCount} pending friend request(s).`);
   }
-}
+
+  return expiredCount;
+} catch (error) {
+  console.error("Error processing expired friend requests:", error);
+  throw error;
+}}
 
 export { sendConnectionRequest, updateConnectionStatus, fetchUserConnections, processExpiredRequests };

@@ -20,7 +20,7 @@ async function createRequest(requesterId, receiverId) {
 
 async function updateStatus(connectionId, status, cooldownUntil = null) {
   const result = await pool.query(
-    "UPDATE connections SET status = $1, cooldown_until = $2 WHERE id = $3 RETURNING *",
+    "UPDATE connections SET status = $1, cooldown_until = $2 WHERE id = $3 AND status = 'pending' RETURNING *",
     [status, cooldownUntil, connectionId]
   );
   return result.rows[0];
@@ -88,11 +88,18 @@ async function recreateRequest(connectionId, requesterId, receiverId) {
 }
 
 async function expireOldRequests(expiryDate, cooldownUntil) {
-  const result = await pool.query(
-    `UPDATE connections SET status = 'expired', cooldown_until = $2 WHERE status = 'pending' AND created_at < $1`,
-    [expiryDate, cooldownUntil]
-  );
+  try {
+    const result = await pool.query(
+      `UPDATE connections 
+       SET status = 'expired', cooldown_until = $2 
+       WHERE status = 'pending' AND created_at < $1`,
+      [expiryDate, cooldownUntil]
+    );
 
-  return result.rowCount;
+    return result.rowCount;
+  } catch (error) {
+    console.error("Database error while expiring friend requests:", error);
+    throw error;
+  }
 }
 export { findConnectionBetween, createRequest, updateStatus, getUserConnections, expireOldRequests, recreateRequest };
