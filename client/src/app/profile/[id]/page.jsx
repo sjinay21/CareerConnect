@@ -1,5 +1,5 @@
 "use client";
-import PrivateRoute from '@/Route/privateroute';
+import PrivateRoute from "@/Route/privateroute";
 import { useState, useEffect } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import Advertisement from "@/components/feed/advertisement";
@@ -10,19 +10,34 @@ import Textarea from "@/components/ui/textarea";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { useParams, useRouter } from "next/navigation";
-import { getUserById, getUserProfile, getPosts, updatePost, deletePost, getConnections, updateUserProfile, createOrGetConversation } from "@/utils/api";
-import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
+import {
+  getUserById,
+  getUserProfile,
+  getPosts,
+  updatePost,
+  deletePost,
+  getConnections,
+  updateUserProfile,
+  createOrGetConversation,
+} from "@/utils/api";
+import {
+  TOAST_MESSAGES,
+  showSuccessToast,
+  showErrorToast,
+} from "@/components/ui/toastUtils";
 import Post from "@/components/feed/post";
 
 function ProfilePage() {
-
   const params = useParams();
   const router = useRouter();
   const userId = params.id;
   const { profile: loggedInUser } = useProfile();
   const [profile, setProfile] = useState(null);
 
-  const isOwnProfile = loggedInUser?.id != null && profile?.id != null && loggedInUser.id == profile.id;
+  const isOwnProfile =
+    loggedInUser?.id != null &&
+    profile?.id != null &&
+    loggedInUser.id == profile.id;
   const [editProfile, setEditProfile] = useState(false);
   const [editData, setEditData] = useState({
     name: "",
@@ -39,7 +54,7 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!userId || !loggedInUser?.id) return;
-    
+
     async function loadAllProfileData() {
       try {
         // 1. Fetch the user's profile
@@ -49,7 +64,7 @@ function ProfilePage() {
         } else {
           profileRes = await getUserById(userId);
         }
-        
+
         let currentProfileId = null;
         if (profileRes.ok) {
           const data = await profileRes.json();
@@ -80,14 +95,15 @@ function ProfilePage() {
             const postsRes = await getPosts();
             if (postsRes.ok) {
               const postsData = await postsRes.json();
-              const filteredPosts = (postsData.posts || []).filter(p => p.authorId == currentProfileId);
+              const filteredPosts = (postsData.posts || []).filter(
+                (p) => p.authorId == currentProfileId,
+              );
               setPosts(filteredPosts);
             }
           } catch (e) {
             console.error("Error fetching user posts:", e);
           }
         }
-
       } catch (error) {
         showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
       }
@@ -111,7 +127,11 @@ function ProfilePage() {
         showErrorToast(result.message || TOAST_MESSAGES.POST_UPDATE_ERROR);
         return { success: false, message: result.message };
       }
-      setPosts(posts.map((post) => post.id == postId ? { ...selectedPost, ...result.post } : post));
+      setPosts(
+        posts.map((post) =>
+          post.id == postId ? { ...selectedPost, ...result.post } : post,
+        ),
+      );
       showSuccessToast(TOAST_MESSAGES.POST_UPDATED);
       return { success: true };
     } catch (error) {
@@ -142,7 +162,7 @@ function ProfilePage() {
     try {
       const response = await createOrGetConversation(profile.id);
       if (response.ok) {
-        router.push('/messages');
+        router.push("/messages");
       }
     } catch (error) {
       console.error("Error creating/getting conversation", error);
@@ -174,11 +194,11 @@ function ProfilePage() {
       formData.append("summary", editData.summary);
       formData.append("location", editData.location);
       formData.append("skills", editData.skills);
-      
+
       if (profilePictureFile) {
         formData.append("profilePicture", profilePictureFile);
       }
-      
+
       if (bannerFile) {
         formData.append("banner", bannerFile);
       }
@@ -210,9 +230,9 @@ function ProfilePage() {
   }
 
   return (
-    <div className="w-full flex flex-col px-3 xl:px-5 py-5 bg-gray-100">
-      <div className="flex justify-between">
-        <div className="w-full md:w-[70%]">
+    <div className="w-full bg-gray-100 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-9 flex flex-col md:flex-row gap-5 md:gap-0">
+        <div className="w-full md:w-[72%] md:pr-5">
           <div>
             <Card padding={0}>
               <div className="w-full h-fit">
@@ -232,7 +252,10 @@ function ProfilePage() {
                   />
                   <div className="absolute object-cover top-36 left-6 z-10 bg-white rounded-full">
                     <img
-                      src={profile.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+                      src={
+                        profile.profile_picture_url ||
+                        "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+                      }
                       alt="profile"
                       className="rounded-full border-2 h-20 w-20 border-white cursor-pointer object-cover"
                     />
@@ -255,11 +278,12 @@ function ProfilePage() {
                     </div>
                     {isOwnProfile && (
                       <div className="text-md text-blue-500 w-fit cursor-pointer hover:underline">
-                        {connectionsCount} Connection{connectionsCount !== 1 ? 's' : ''}
+                        {connectionsCount} Connection
+                        {connectionsCount !== 1 ? "s" : ""}
                       </div>
                     )}
                     <div className="md:flex w-full justify-between">
-                      <div className="my-5 flex gap-5">
+                      <div className="my-5 flex gap-5 md:gap-0">
                         <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold">
                           Open to
                         </div>
@@ -267,10 +291,10 @@ function ProfilePage() {
                           Share
                         </div>
                       </div>
-                      <div className="my-5 flex gap-5">
+                      <div className="my-5 flex gap-5 md:gap-0">
                         {!isOwnProfile && (
                           <>
-                            <div 
+                            <div
                               onClick={handleMessage}
                               className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold"
                             >
@@ -314,7 +338,7 @@ function ProfilePage() {
                   </div>
                 )}
               </div>
-                  <div className="text-gray-700 text-md w-[80%]">
+              <div className="text-gray-700 text-md w-[80%]">
                 {profile.skills}
               </div>
             </Card>
@@ -328,14 +352,16 @@ function ProfilePage() {
           <Experience userId={profile.id} isOwnProfile={isOwnProfile} />
 
           {posts.length > 0 && (
-            <div className="my-5 flex flex-col gap-5">
-              <div className="text-xl font-semibold mb-2">Activity ({posts.length} posts)</div>
+            <div className="my-5 flex flex-col gap-5 md:gap-0">
+              <div className="text-xl font-semibold mb-2">
+                Activity ({posts.length} posts)
+              </div>
               {posts.map((post) => (
-                <Post 
-                  key={post.id} 
-                  post={post} 
-                  onEdit={isOwnProfile ? handleUpdatePost : undefined} 
-                  onDelete={isOwnProfile ? handleDeletePost : undefined} 
+                <Post
+                  key={post.id}
+                  post={post}
+                  onEdit={isOwnProfile ? handleUpdatePost : undefined}
+                  onDelete={isOwnProfile ? handleDeletePost : undefined}
                 />
               ))}
             </div>
@@ -353,7 +379,9 @@ function ProfilePage() {
         <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50">
           <div className="bg-white w-[90%] md:w-[600px] max-h-[90vh] overflow-y-auto rounded-lg p-6">
             <div className="flex justify-between items-center mb-5">
-              <div className="text-2xl font-semibold text-black">Edit Profile</div>
+              <div className="text-2xl font-semibold text-black">
+                Edit Profile
+              </div>
               <div
                 onClick={() => setEditProfile(false)}
                 className="text-3xl cursor-pointer"
@@ -363,7 +391,9 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">Name</label>
+              <label className="block mb-1 font-semibold text-black">
+                Name
+              </label>
               <Input
                 type="text"
                 value={editData.name}
@@ -378,13 +408,17 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">Profile Picture</label>
-              <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer ">
+              <label className="block mb-1 font-semibold text-black">
+                Profile Picture
+              </label>
+              <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer">
                 <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
                   Choose File
                 </div>
-                <span className="text-black text-sm truncate flex-1">
-                  {profilePictureFile ? profilePictureFile.name : "No file chosen"}
+                <span className="text-black text-sm flex">
+                  {profilePictureFile
+                    ? profilePictureFile.name
+                    : "No file chosen"}
                 </span>
                 <input
                   type="file"
@@ -396,12 +430,14 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">Banner Image</label>
+              <label className="block mb-1 font-semibold text-black">
+                Banner Image
+              </label>
               <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer">
                 <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
                   Choose File
                 </div>
-                <span className="text-black text-sm flex-1">
+                <span className="text-black text-sm w-full">
                   {bannerFile ? bannerFile.name : "No file chosen"}
                 </span>
                 <input
@@ -414,7 +450,9 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">Summary</label>
+              <label className="block mb-1 font-semibold text-black">
+                Summary
+              </label>
               <Input
                 type="text"
                 value={editData.summary}
@@ -429,7 +467,9 @@ function ProfilePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">Location</label>
+              <label className="block mb-1 font-semibold text-black">
+                Location
+              </label>
               <Input
                 type="text"
                 value={editData.location}
@@ -439,11 +479,14 @@ function ProfilePage() {
                     location: e.target.value,
                   })
                 }
-                variant="outline"/>
+                variant="outline"
+              />
             </div>
 
             <div className="mb-5">
-              <label className="block mb-1 font-semibold text-black">About</label>
+              <label className="block mb-1 font-semibold text-black">
+                About
+              </label>
               <Textarea
                 value={editData.about}
                 onChange={(e) =>
@@ -457,7 +500,9 @@ function ProfilePage() {
               />
             </div>
             <div className="mb-5">
-              <label className="block mb-1 font-semibold text-black">Skills</label>
+              <label className="block mb-1 font-semibold text-black">
+                Skills
+              </label>
               <Textarea
                 value={editData.skills}
                 onChange={(e) =>
@@ -479,10 +524,7 @@ function ProfilePage() {
                 Cancel
               </Buttonvariants>
 
-              <Buttonvariants
-                onClick={handleSave}
-                variant="psend"
-              >
+              <Buttonvariants onClick={handleSave} variant="psend">
                 Save
               </Buttonvariants>
             </div>
@@ -494,5 +536,9 @@ function ProfilePage() {
 }
 
 export default function WrappedProfilePage() {
-  return <PrivateRoute><ProfilePage /></PrivateRoute>;
+  return (
+    <PrivateRoute>
+      <ProfilePage />
+    </PrivateRoute>
+  );
 }

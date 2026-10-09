@@ -1,5 +1,5 @@
 "use client";
-import PrivateRoute from '@/Route/privateroute';
+import PrivateRoute from "@/Route/privateroute";
 import { useState } from "react";
 import { useAppNavigation } from "@/hooks/useNavigation";
 import Textarea from "@/components/ui/textarea";
@@ -17,10 +17,10 @@ function Article() {
     if (!content.trim()) {
       return;
     }
-    
+
     // Combine title and content as markdown or formatted string
     const fullContent = `**${title}**\n\n${content}`;
-    
+
     const formData = new FormData();
     formData.append("content", fullContent);
 
@@ -71,5 +71,9 @@ function Article() {
 }
 
 export default function WrappedArticle() {
-  return <PrivateRoute><Article /></PrivateRoute>;
+  return (
+    <PrivateRoute>
+      <Article />
+    </PrivateRoute>
+  );
 }

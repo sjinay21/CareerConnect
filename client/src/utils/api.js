@@ -1,21 +1,25 @@
-const API_URL ="http://localhost:5000";
+const API_URL = "http://localhost:5000";
 import { PAGINATION_LIMITS } from "./paginationConfig";
 
 export const customFetch = async (endpoint, options = {}) => {
   options.credentials = "include";
-  
+
   if (!options.headers) {
     options.headers = {};
   }
-  
+
   const fullUrl = API_URL + endpoint;
   const response = await fetch(fullUrl, options);
-  
-  if (response.status == 401 && typeof window !== "undefined" && !window.location.href.includes("login")) {
+
+  if (
+    response.status == 401 &&
+    typeof window !== "undefined" &&
+    !window.location.href.includes("login")
+  ) {
     localStorage.removeItem("user");
     window.location.href = "/login";
   }
-  
+
   return response;
 };
 
@@ -40,7 +44,7 @@ export const logoutUser = async () => {
     method: "POST",
   });
   if (typeof window !== "undefined") {
-     localStorage.removeItem("user");
+    localStorage.removeItem("user");
   }
   return response;
 };
@@ -63,7 +67,7 @@ export const getUserById = async (userId) => {
 
 export const updateUserProfile = async (data) => {
   const isForm = Boolean(data.append);
-  
+
   return await customFetch("/users/update", {
     method: "PUT",
     headers: isForm ? {} : { "Content-Type": "application/json" },
@@ -78,7 +82,6 @@ export const getPosts = async () => {
 };
 
 export const createPost = async (formData) => {
- 
   return await customFetch("/posts/create", {
     method: "POST",
     body: formData,
@@ -121,11 +124,11 @@ export const getComments = async (postId) => {
 };
 
 export const addComment = async (postId, content, parentCommentId = null) => {
-  const body = { postId, content }; 
+  const body = { postId, content };
   if (parentCommentId) {
     body.parentCommentId = parentCommentId;
   }
-  
+
   return await customFetch("/comments/addcomments", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -134,19 +137,19 @@ export const addComment = async (postId, content, parentCommentId = null) => {
 };
 
 /* export const updateComment = async (commentId, content) => {
-  return await customFetch("/comments/updatecomments", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ commentId, content }),
-  });
+ return await customFetch("/comments/updatecomments", {
+ method:"PUT",
+ headers: {"Content-Type":"application/json" },
+ body: JSON.stringify({ commentId, content }),
+ });
 };
 
 export const deleteComment = async (commentId) => {
-  return await customFetch("/comments/deletecomments", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ commentId }),
-  });
+ return await customFetch("/comments/deletecomments", {
+ method:"DELETE",
+ headers: {"Content-Type":"application/json" },
+ body: JSON.stringify({ commentId }),
+ });
 }; */
 
 export const getExperiences = async (userId = "") => {
@@ -178,10 +181,17 @@ export const deleteExperience = async (id) => {
   });
 };
 
-export const searchUsers = async (search = "", limit = PAGINATION_LIMITS.USERS, offset = 0) => {
-  return await customFetch(`/users?search=${search}&limit=${limit}&offset=${offset}`, {
-    method: "GET",
-  });
+export const searchUsers = async (
+  search = "",
+  limit = PAGINATION_LIMITS.USERS,
+  offset = 0,
+) => {
+  return await customFetch(
+    `/users?search=${search}&limit=${limit}&offset=${offset}`,
+    {
+      method: "GET",
+    },
+  );
 };
 
 export const getAllUsers = async () => {
@@ -215,35 +225,48 @@ export const createOrGetConversation = async (userId) => {
     body: JSON.stringify({ userId }),
   });
 };
-export const getUserConversationsList = async (limit = PAGINATION_LIMITS.CONVERSATIONS, offset = 0) => {
-  return await customFetch(`/conversations/Userlist?limit=${limit}&offset=${offset}`, {
-    method: "GET",
-  });
+export const getUserConversationsList = async (
+  limit = PAGINATION_LIMITS.CONVERSATIONS,
+  offset = 0,
+) => {
+  return await customFetch(
+    `/conversations/Userlist?limit=${limit}&offset=${offset}`,
+    {
+      method: "GET",
+    },
+  );
 };
 export const getConversationMembers = async (conversationId) => {
   return await customFetch(`/conversations/${conversationId}/members`, {
     method: "GET",
   });
-};  
-export const getConversationMessages = async (conversationId, limit = PAGINATION_LIMITS.MESSAGES, offset = 0) => {
-  return await customFetch(`/messages/${conversationId}?limit=${limit}&offset=${offset}`, {
-    method: "GET",
-  });
-};      
+};
+export const getConversationMessages = async (
+  conversationId,
+  limit = PAGINATION_LIMITS.MESSAGES,
+  offset = 0,
+) => {
+  return await customFetch(
+    `/messages/${conversationId}?limit=${limit}&offset=${offset}`,
+    {
+      method: "GET",
+    },
+  );
+};
 export const sendMessage = async (conversationId, content) => {
   return await customFetch("/messages/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ conversationId, content }),
   });
-};    
+};
 export const createJob = async (data) => {
   return await customFetch("/jobs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-};  
+};
 export const deleteJob = async (id) => {
   return await customFetch(`/jobs/${id}`, {
     method: "DELETE",
@@ -253,7 +276,7 @@ export const getAllJobs = async () => {
   return await customFetch("/jobs", {
     method: "GET",
   });
-};  
+};
 export const getJobById = async (id) => {
   return await customFetch(`/jobs/${id}`, {
     method: "GET",

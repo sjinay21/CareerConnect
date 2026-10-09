@@ -32,7 +32,7 @@ export default function Post({ post, onEdit, onDelete }) {
     if (result.success) {
       setIsEditing(false);
     } else {
-      alert("Failed to update post: " + result.message);
+      alert("Failed to update post:" + result.message);
     }
   };
 
@@ -44,14 +44,21 @@ export default function Post({ post, onEdit, onDelete }) {
             <div className="w-12 h-12 rounded-4xl">
               <img
                 className="rounded-4xl w-12 h-12 border-white cursor-pointer object-cover bg-white"
-                src={post?.authorProfilePicture || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+                src={
+                  post?.authorProfilePicture ||
+                  "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+                }
                 alt="image"
               />
             </div>
 
             <div>
-              <div className="text-lg font-semibold">{post?.authorName || "User"}</div>
-              <div className="text-xs text-gray-500">{post?.authorSummary || "LinkedIn Member"}</div>
+              <div className="text-lg font-semibold">
+                {post?.authorName || "User"}
+              </div>
+              <div className="text-xs text-gray-500">
+                {post?.authorSummary || "LinkedIn Member"}
+              </div>
             </div>
           </div>
 
@@ -116,7 +123,11 @@ export default function Post({ post, onEdit, onDelete }) {
 
         {post?.mediaUrl && (
           <div className="w-full h-[300px]">
-            <img className="w-full h-full object-contain bg-gray-100" src={post.mediaUrl} alt="post" />
+            <img
+              className="w-full h-full object-contain bg-gray-100"
+              src={post.mediaUrl}
+              alt="post"
+            />
           </div>
         )}
 
@@ -141,19 +152,19 @@ export default function Post({ post, onEdit, onDelete }) {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden relative">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-black">Delete Post</h2>
-              <button 
+              <button
                 onClick={() => setIsDeleting(false)}
                 className="text-red-500 hover:text-red-700 cursor-pointer"
               >
                 <CloseIcon />
               </button>
             </div>
-            
+
             <div className="p-4 md:p-6">
               <p className="text-lg text-center text-black font-medium mb-8 pb-6">
                 Are you sure you want to delete this post?
               </p>
-              
+
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => setIsDeleting(false)}
@@ -175,7 +186,6 @@ export default function Post({ post, onEdit, onDelete }) {
           </div>
         </div>
       )}
-
     </>
   );
 }

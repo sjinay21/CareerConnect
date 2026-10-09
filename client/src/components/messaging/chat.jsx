@@ -4,22 +4,33 @@ import { useState, useEffect } from "react";
 import { List } from "react-window";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import DoneAllIcon from '@mui/icons-material/DoneAll';
+import DoneAllIcon from "@mui/icons-material/DoneAll";
 
-export default function Chat({ user, chat, onSendMessage, currentUserId, isTyping, onTyping, onStopTyping, onLoadMoreMessages, hasMoreMessages, loadingMessages }) {
+export default function Chat({
+  user,
+  chat,
+  onSendMessage,
+  currentUserId,
+  isTyping,
+  onTyping,
+  onStopTyping,
+  onLoadMoreMessages,
+  hasMoreMessages,
+  loadingMessages,
+}) {
   const [message, setMessage] = useState("");
 
   const lastMessage = chat.length > 0 ? chat[chat.length - 1] : null;
   /*useEffect(() => {
-  console.log("Chat state:", chat);
-  console.log("Chat message count:", chat.length);
+ console.log("Chat state:", chat);
+ console.log("Chat message count:", chat.length);
 }, [chat]);*/
   useEffect(() => {
     const container = document.querySelector(".react-window-list");
     if (container) {
       container.scrollTo({
         top: container.scrollHeight,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   }, [lastMessage]);
@@ -28,9 +39,9 @@ export default function Chat({ user, chat, onSendMessage, currentUserId, isTypin
     if (e.target.scrollTop == 0 && hasMoreMessages && !loadingMessages) {
       const container = e.target;
       const previousScrollHeight = container.scrollHeight;
-      
+
       await onLoadMoreMessages();
-      
+
       setTimeout(() => {
         if (container) {
           const newScrollHeight = container.scrollHeight;
@@ -51,11 +62,11 @@ export default function Chat({ user, chat, onSendMessage, currentUserId, isTypin
     if (message.trim() == "") {
       return;
     }
-    
+
     if (onStopTyping) {
       onStopTyping();
     }
-    
+
     onSendMessage(message);
     setMessage("");
   }
@@ -89,20 +100,34 @@ export default function Chat({ user, chat, onSendMessage, currentUserId, isTypin
 
     return (
       <div style={style}>
-        <div className={`flex flex-col mb-3 px-4 ${isSender ? "items-end" : "items-start"}`}>
-          <div className={`flex w-full ${isSender ? "justify-end" : "justify-start"}`}>
-            <p className={`text-white px-4 py-2 rounded-2xl max-w-[70%] ${isSender ? "bg-green-700" : "bg-blue-600"}`}>
+        <div
+          className={`flex flex-col mb-3 px-4 ${isSender ? "items-end" : "items-start"}`}
+        >
+          <div
+            className={`flex w-full ${isSender ? "justify-end" : "justify-start"}`}
+          >
+            <p
+              className={`text-white px-4 py-2 rounded-2xl max-w-[70%] ${isSender ? "bg-green-700" : "bg-blue-600"}`}
+            >
               {msg.content}
             </p>
             {isSender && (
               <div className="flex items-end ml-1 mb-1">
-                <DoneAllIcon sx={{ fontSize: 20 }} className={msg.is_seen ? "text-blue-500" : "text-gray-400"} />
+                <DoneAllIcon
+                  sx={{ fontSize: 20 }}
+                  className={msg.is_seen ? "text-blue-500" : "text-gray-400"}
+                />
               </div>
             )}
           </div>
           {msg.created_at && (
-            <span className={`text-[10px] text-gray-500 mt-1 ${isSender ? "mr-7" : "ml-2"}`}>
-              {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <span
+              className={`text-[10px] text-gray-500 mt-1 ${isSender ? "mr-7" : "ml-2"}`}
+            >
+              {new Date(msg.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
           )}
         </div>
@@ -113,11 +138,14 @@ export default function Chat({ user, chat, onSendMessage, currentUserId, isTypin
   return (
     <div className="w-full h-full flex flex-col bg-white">
       <div className="p-4 border-b border-gray-300 flex items-center gap-3">
-        <div className="shrink-0">
+        <div className="">
           <img
-            src={user?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+            src={
+              user?.profile_picture_url ||
+              "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+            }
             alt="image"
-            className="rounded-full h-12 w-12 cursor-pointer  bg-white"
+            className="rounded-full h-12 w-12 cursor-pointer bg-white"
           />
         </div>
 
@@ -129,15 +157,15 @@ export default function Chat({ user, chat, onSendMessage, currentUserId, isTypin
         </div>
       </div>
 
-      {/* 
+      {/*
        * OLD CODE (Replaced because react-window now handles rendering only visible messages):
-       * <div id="messages-container" className="flex-1 p-4 overflow-y-auto" onScroll={handleScroll}>
-       *   {loadingMessages && <div className="text-center text-gray-500 text-xs my-2">Loading older messages...</div>}
-       *   {chat.map(...)}
-       *   {isTyping && ...}
+       * <div id="messages-container" className="w-full p-4 overflow-y-auto" onScroll={handleScroll}>
+       * {loadingMessages && <div className="text-center text-gray-500 text-xs my-2">Loading older messages...</div>}
+       * {chat.map(...)}
+       * {isTyping && ...}
        * </div>
        */}
-     <div className="flex-1 min-h-0 relative">
+      <div className="w-full min-h-0 relative">
         {loadingMessages && (
           <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded shadow text-xs text-gray-500 z-10">
             Loading older messages...
@@ -154,7 +182,7 @@ export default function Chat({ user, chat, onSendMessage, currentUserId, isTypin
       </div>
 
       <div className="p-4 border-t border-gray-300">
-        <form 
+        <form
           className="flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();

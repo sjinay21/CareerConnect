@@ -1,5 +1,5 @@
 "use client";
-import PrivateRoute from '@/Route/privateroute';
+import PrivateRoute from "@/Route/privateroute";
 import React from "react";
 import { useAppNavigation } from "@/hooks/useNavigation";
 import { updateUserProfile, logoutUser } from "@/utils/api";
@@ -7,7 +7,11 @@ import Buttonvariants from "@/components/ui/button";
 import InfoMessage from "@/components/ui/InfoMessage";
 import { Formik, Form, Field } from "formik";
 import { onboardingSchema } from "@/schemas/authSchema";
-import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
+import {
+  TOAST_MESSAGES,
+  showSuccessToast,
+  showErrorToast,
+} from "@/components/ui/toastUtils";
 
 function Onboarding() {
   const { goToFeeds } = useAppNavigation();
@@ -20,7 +24,7 @@ function Onboarding() {
         about: values.about,
         skills: values.skills,
       });
-      
+
       if (res.status == 200) {
         localStorage.setItem("profileComplete", "true");
         showSuccessToast(TOAST_MESSAGES.ONBOARDING_SUCCESS);
@@ -41,7 +45,7 @@ function Onboarding() {
       localStorage.removeItem("user");
       localStorage.removeItem("profileComplete");
       showSuccessToast(TOAST_MESSAGES.LOGOUT_SUCCESS);
-      
+
       setTimeout(() => {
         window.location.href = "/login";
       }, 800);
@@ -54,15 +58,19 @@ function Onboarding() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8 relative">
-        <button 
+        <button
           onClick={handleLogout}
           className="absolute top-4 right-4 text-sm font-semibold text-gray-500 hover:text-gray-800 transition"
         >
           Logout
         </button>
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Welcome to LinkedIn!</h1>
-          <p className="text-gray-500 mt-2">Let's set up your profile so you can start connecting.</p>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Welcome to LinkedIn!
+          </h1>
+          <p className="text-gray-500 mt-2">
+            Let's set up your profile so you can start connecting.
+          </p>
         </div>
 
         <Formik
@@ -78,7 +86,8 @@ function Onboarding() {
           {({ errors, touched }) => (
             <Form className="flex flex-col gap-5">
               <div>
-                <label className="block mb-1 font-semibold text-gray-700">Summary
+                <label className="block mb-1 font-semibold text-gray-700">
+                  Summary
                   <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -96,7 +105,8 @@ function Onboarding() {
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-gray-700">Location
+                <label className="block mb-1 font-semibold text-gray-700">
+                  Location
                   <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -114,7 +124,8 @@ function Onboarding() {
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-gray-700">About Me
+                <label className="block mb-1 font-semibold text-gray-700">
+                  About Me
                   <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -133,7 +144,8 @@ function Onboarding() {
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-gray-700">Skills  
+                <label className="block mb-1 font-semibold text-gray-700">
+                  Skills
                   <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -152,10 +164,7 @@ function Onboarding() {
               </div>
 
               <div className="mt-4 flex justify-end">
-                <Buttonvariants
-                  variant="primary"
-                  type="submit"
-                >
+                <Buttonvariants variant="primary" type="submit">
                   Save & Continue
                 </Buttonvariants>
               </div>
@@ -168,6 +177,9 @@ function Onboarding() {
 }
 
 export default function WrappedOnboarding() {
-  return <PrivateRoute><Onboarding /></PrivateRoute>;
+  return (
+    <PrivateRoute>
+      <Onboarding />
+    </PrivateRoute>
+  );
 }
-

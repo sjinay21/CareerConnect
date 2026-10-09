@@ -7,9 +7,7 @@ export default function SmallModel({ title, onClose, children }) {
       <div className="w-[90%] md:w-[500px] max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl">
         <div className="flex justify-between border-b pb-3 mb-3 border-gray-100">
           <div className="flex gap-4 items-center">
-            <div className="text-xl text-black font-semibold">
-              {title}
-            </div>
+            <div className="text-xl text-black font-semibold">{title}</div>
           </div>
           <div
             className="cursor-pointer text-gray-500 hover:text-black transition"

@@ -1,10 +1,14 @@
 "use client";
-import PrivateRoute from '@/Route/privateroute';
+import PrivateRoute from "@/Route/privateroute";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getPosts, updatePost, deletePost } from "@/utils/api";
 import Post from "@/components/feed/post";
-import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
+import {
+  TOAST_MESSAGES,
+  showSuccessToast,
+  showErrorToast,
+} from "@/components/ui/toastUtils";
 
 function SinglePostPage() {
   const params = useParams();
@@ -22,7 +26,7 @@ function SinglePostPage() {
         if (res.ok) {
           const data = await res.json();
           // Find the single post that matches the ID we extracted
-          const foundPost = (data.posts || []).find(p => p.id == id);
+          const foundPost = (data.posts || []).find((p) => p.id == id);
           setPost(foundPost);
         }
       } catch (e) {
@@ -81,17 +85,19 @@ function SinglePostPage() {
             Loading post...
           </div>
         ) : post ? (
-          <Post 
-            post={post} 
-            onEdit={handleUpdatePost} 
-            onDelete={handleDeletePost} 
+          <Post
+            post={post}
+            onEdit={handleUpdatePost}
+            onDelete={handleDeletePost}
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-center text-gray-500 bg-white p-10 rounded-lg border border-gray-200 shadow-sm mt-5">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Post not found</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Post not found
+            </h2>
             <p>This post may have been deleted or the link is invalid.</p>
-            <button 
-              onClick={() => router.push('/feeds')}
+            <button
+              onClick={() => router.push("/feeds")}
               className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
             >
               Go to Feeds
@@ -104,5 +110,9 @@ function SinglePostPage() {
 }
 
 export default function WrappedSinglePostPage() {
-  return <PrivateRoute><SinglePostPage /></PrivateRoute>;
+  return (
+    <PrivateRoute>
+      <SinglePostPage />
+    </PrivateRoute>
+  );
 }

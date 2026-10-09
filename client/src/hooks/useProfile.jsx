@@ -31,4 +31,3 @@ export function useProfile() {
 
   return { profile, setProfile };
 }
-

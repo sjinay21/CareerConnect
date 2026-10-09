@@ -6,7 +6,7 @@ import Textarea from "@/components/ui/textarea";
 export default function EditModel({ post, onSave }) {
   const [postText, setPostText] = useState(post?.content || "");
   const [selectedImage, setSelectedImage] = useState(null);
-  
+
   // If they have an existing image, show it. If they pick a new one, show that preview.
   const [previewUrl, setPreviewUrl] = useState(post?.mediaUrl || null);
 
@@ -22,14 +22,14 @@ export default function EditModel({ post, onSave }) {
     if (!postText.trim() && !selectedImage && !previewUrl) {
       return;
     }
-    
+
     const formData = new FormData();
     formData.append("content", postText);
-    
+
     if (selectedImage) {
       formData.append("image", selectedImage);
     }
-    
+
     await onSave(formData);
   }
 
@@ -48,10 +48,17 @@ export default function EditModel({ post, onSave }) {
 
       {previewUrl && (
         <div className="relative my-3">
-          <img className="max-w-full h-40 object-cover rounded-xl" src={previewUrl} alt="Preview" />
-          <button 
+          <img
+            className="max-w-full h-40 object-cover rounded-xl"
+            src={previewUrl}
+            alt="Preview"
+          />
+          <button
             className="absolute top-1 left-1 bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-            onClick={() => { setSelectedImage(null); setPreviewUrl(null); }}
+            onClick={() => {
+              setSelectedImage(null);
+              setPreviewUrl(null);
+            }}
           >
             X
           </button>
@@ -60,19 +67,22 @@ export default function EditModel({ post, onSave }) {
 
       <div className="flex justify-between items-center mt-3">
         <div className="my-2">
-          <label className="cursor-pointer text-gray-600 hover:text-black p-2 rounded-full hover:bg-gray-100 transition" htmlFor="edit-inputfile">
+          <label
+            className="cursor-pointer text-gray-600 hover:text-black p-2 rounded-full hover:bg-gray-100 transition"
+            htmlFor="edit-inputfile"
+          >
             <ImageIcon />
           </label>
-          <input 
-            type="file" 
+          <input
+            type="file"
             accept="image/*"
-            className="hidden" 
+            className="hidden"
             id="edit-inputfile"
             onChange={handleImageChange}
           />
         </div>
-        
-        <div className="flex-1"></div>
+
+        <div className="w-full"></div>
 
         <button
           onClick={handleSave}

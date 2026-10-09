@@ -21,20 +21,19 @@ export default function CommentReplies({ comment, addReply }) {
     <div className="my-4 w-full">
       <div className="relative flex gap-3 items-start w-full">
         <img
-          className="w-8 h-8 rounded-full shrink-0 object-cover bg-white"
-          src={comment.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+          className="w-8 h-8 rounded-full object-cover bg-white"
+          src={
+            comment.profile_picture_url ||
+            "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+          }
           alt="image"
         />
-        <div className="flex-1 min-w-0 pr-24">
-          <div className="text-md">
-            {comment.authorName || "User"}
-          </div>
+        <div className="w-full min-w-0 pr-24">
+          <div className="text-md">{comment.authorName || "User"}</div>
           <div className="text-sm text-gray-500">
             {comment.authorSummary || "LinkedIn Member"}
           </div>
-          <div className="mt-1 ">
-            {comment.text}
-          </div>
+          <div className="mt-1">{comment.text}</div>
         </div>
         <div className="absolute right-0 top-0">
           <Buttonvariants
@@ -48,11 +47,8 @@ export default function CommentReplies({ comment, addReply }) {
       </div>
 
       {showReplyInput && (
-        <form
-          onSubmit={handleReplySubmit}
-          className="flex gap-2 mt-3 w-full"
-        >
-          <div className="flex-1 min-w-0">
+        <form onSubmit={handleReplySubmit} className="flex gap-2 mt-3 w-full">
+          <div className="w-full min-w-0">
             <Input
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
@@ -61,7 +57,7 @@ export default function CommentReplies({ comment, addReply }) {
             />
           </div>
 
-          <div className="shrink-0">
+          <div className="">
             <Buttonvariants type="submit" variant="postsend">
               Send
             </Buttonvariants>

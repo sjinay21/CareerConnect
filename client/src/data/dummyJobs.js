@@ -11,7 +11,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "3 weeks ago",
     applicants: "Over 100 applicants",
-    about: "We're looking for a Full Stack Developer who can work across both frontend and backend development, build scalable and reliable applications, and collaborate closely with the product and engineering teams to deliver features end-to-end. You will take ownership of technical solutions, ensuring performance, quality, and responsiveness of applications."
+    about:
+      "We're looking for a Full Stack Developer who can work across both frontend and backend development, build scalable and reliable applications, and collaborate closely with the product and engineering teams to deliver features end-to-end. You will take ownership of technical solutions, ensuring performance, quality, and responsiveness of applications.",
   },
   {
     id: 2,
@@ -25,7 +26,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "3 days ago",
     applicants: "45 applicants",
-    about: "Looking for a Full Stack expert to build amazing user interfaces and robust backends..."
+    about:
+      "Looking for a Full Stack expert to build amazing user interfaces and robust backends...",
   },
   {
     id: 3,
@@ -39,7 +41,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "1 day ago",
     applicants: "89 applicants",
-    about: "Join our team to build highly scalable machine learning microservices and pipelines..."
+    about:
+      "Join our team to build highly scalable machine learning microservices and pipelines...",
   },
   {
     id: 4,
@@ -53,21 +56,22 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "1 week ago",
     applicants: "12 applicants",
-    about: "Design and implement product features for production..."
+    about: "Design and implement product features for production...",
   },
   {
-    id:5,
-    title:"Full Stack Developer",
-    company_name:"Triveous",
-    location:"India (Remote)",
-    work_mode:"Remote",
-    employment_type:"Full-time",
-    salary_min:500000,
-    salary_max:1200000,
-    easy_apply:true,
-    posted_at:"3 weeks ago",
-    applicants:"Over 100 applicants",
-    about:"We're looking for a Full Stack Developer who can work across both frontend and backend development, build scalable and reliable applications, and collaborate closely with the product and engineering teams to deliver features end-to-end. You will take ownership of technical solutions, ensuring performance, quality, and responsiveness of applications."
+    id: 5,
+    title: "Full Stack Developer",
+    company_name: "Triveous",
+    location: "India (Remote)",
+    work_mode: "Remote",
+    employment_type: "Full-time",
+    salary_min: 500000,
+    salary_max: 1200000,
+    easy_apply: true,
+    posted_at: "3 weeks ago",
+    applicants: "Over 100 applicants",
+    about:
+      "We're looking for a Full Stack Developer who can work across both frontend and backend development, build scalable and reliable applications, and collaborate closely with the product and engineering teams to deliver features end-to-end. You will take ownership of technical solutions, ensuring performance, quality, and responsiveness of applications.",
   },
   {
     id: 6,
@@ -81,7 +85,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "2 hours ago",
     applicants: "15 applicants",
-    about: "We are seeking a highly creative Senior UX Designer to lead design initiatives for our flagship SaaS product. You will conduct user research, create wireframes, and collaborate with product teams to design intuitive and stunning user interfaces."
+    about:
+      "We are seeking a highly creative Senior UX Designer to lead design initiatives for our flagship SaaS product. You will conduct user research, create wireframes, and collaborate with product teams to design intuitive and stunning user interfaces.",
   },
   {
     id: 7,
@@ -95,7 +100,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "5 days ago",
     applicants: "130 applicants",
-    about: "Join our data science team to analyze massive datasets, build predictive models using Python, and translate complex analytical findings into actionable business insights. Strong experience with machine learning frameworks is required."
+    about:
+      "Join our data science team to analyze massive datasets, build predictive models using Python, and translate complex analytical findings into actionable business insights. Strong experience with machine learning frameworks is required.",
   },
   {
     id: 8,
@@ -109,7 +115,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "2 weeks ago",
     applicants: "75 applicants",
-    about: "We need an experienced DevOps Engineer to maintain our AWS infrastructure, improve CI/CD pipelines, and ensure high availability of our systems. Experience with Docker, Kubernetes, and Terraform is essential."
+    about:
+      "We need an experienced DevOps Engineer to maintain our AWS infrastructure, improve CI/CD pipelines, and ensure high availability of our systems. Experience with Docker, Kubernetes, and Terraform is essential.",
   },
   {
     id: 9,
@@ -123,7 +130,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "1 month ago",
     applicants: "Over 200 applicants",
-    about: "Lead our digital marketing campaigns, manage social media strategies, and oversee the creation of compelling marketing content. You will be responsible for driving brand awareness and customer acquisition."
+    about:
+      "Lead our digital marketing campaigns, manage social media strategies, and oversee the creation of compelling marketing content. You will be responsible for driving brand awareness and customer acquisition.",
   },
   {
     id: 10,
@@ -137,7 +145,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "12 hours ago",
     applicants: "30 applicants",
-    about: "Looking for a React developer for a 6-month contract to build responsive web applications. You should have strong skills in JavaScript, React hooks, Tailwind CSS, and state management libraries."
+    about:
+      "Looking for a React developer for a 6-month contract to build responsive web applications. You should have strong skills in JavaScript, React hooks, Tailwind CSS, and state management libraries.",
   },
   {
     id: 11,
@@ -151,7 +160,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "4 hours ago",
     applicants: "22 applicants",
-    about: "We are seeking a Cybersecurity Analyst to monitor our networks, detect security breaches, and implement comprehensive security measures. Strong knowledge of firewalls, encryption, and penetration testing is required."
+    about:
+      "We are seeking a Cybersecurity Analyst to monitor our networks, detect security breaches, and implement comprehensive security measures. Strong knowledge of firewalls, encryption, and penetration testing is required.",
   },
   {
     id: 12,
@@ -165,7 +175,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "1 day ago",
     applicants: "95 applicants",
-    about: "Join our core platform team to build scalable and high-performance financial microservices. We heavily use Golang and Node.js. You should be comfortable with distributed systems, PostgreSQL, and Redis caching."
+    about:
+      "Join our core platform team to build scalable and high-performance financial microservices. We heavily use Golang and Node.js. You should be comfortable with distributed systems, PostgreSQL, and Redis caching.",
   },
   {
     id: 13,
@@ -179,7 +190,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "3 days ago",
     applicants: "58 applicants",
-    about: "Partner with business leaders to develop HR strategies, drive employee engagement, and manage the complete talent lifecycle. The ideal candidate has strong interpersonal skills and conflict resolution experience."
+    about:
+      "Partner with business leaders to develop HR strategies, drive employee engagement, and manage the complete talent lifecycle. The ideal candidate has strong interpersonal skills and conflict resolution experience.",
   },
   {
     id: 14,
@@ -193,7 +205,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "1 week ago",
     applicants: "115 applicants",
-    about: "We are looking for a highly skilled Cloud Architect to design and implement enterprise-level cloud solutions. Deep expertise in AWS, Azure, cloud migration strategies, and serverless architectures is a must."
+    about:
+      "We are looking for a highly skilled Cloud Architect to design and implement enterprise-level cloud solutions. Deep expertise in AWS, Azure, cloud migration strategies, and serverless architectures is a must.",
   },
   {
     id: 15,
@@ -207,7 +220,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "5 hours ago",
     applicants: "42 applicants",
-    about: "We need a creative Graphic Designer for part-time work to design marketing collateral, social media posts, and brand identities. Proficiency in Adobe Creative Suite (Photoshop, Illustrator, InDesign) is required."
+    about:
+      "We need a creative Graphic Designer for part-time work to design marketing collateral, social media posts, and brand identities. Proficiency in Adobe Creative Suite (Photoshop, Illustrator, InDesign) is required.",
   },
   {
     id: 16,
@@ -221,7 +235,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "2 weeks ago",
     applicants: "150 applicants",
-    about: "Lead the development of our next-generation AI products. You will define the product roadmap, gather customer feedback, and work closely with engineering teams to ensure successful product launches."
+    about:
+      "Lead the development of our next-generation AI products. You will define the product roadmap, gather customer feedback, and work closely with engineering teams to ensure successful product launches.",
   },
   {
     id: 17,
@@ -235,7 +250,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "2 days ago",
     applicants: "85 applicants",
-    about: "Looking for an energetic Sales Executive to drive B2B sales in the retail tech space. You will be responsible for lead generation, client meetings, closing deals, and maintaining client relationships."
+    about:
+      "Looking for an energetic Sales Executive to drive B2B sales in the retail tech space. You will be responsible for lead generation, client meetings, closing deals, and maintaining client relationships.",
   },
   {
     id: 18,
@@ -249,7 +265,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "10 hours ago",
     applicants: "28 applicants",
-    about: "We are seeking a Flutter developer for an initial 6-month contract to build cross-platform mobile applications. Experience with Dart, state management (Provider/Riverpod), and REST API integration is essential."
+    about:
+      "We are seeking a Flutter developer for an initial 6-month contract to build cross-platform mobile applications. Experience with Dart, state management (Provider/Riverpod), and REST API integration is essential.",
   },
   {
     id: 19,
@@ -263,7 +280,8 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "1 day ago",
     applicants: "60 applicants",
-    about: "Join our QA team to perform manual and automated testing. You will write test plans, develop automated test scripts using Selenium or Cypress, and work with developers to resolve defects."
+    about:
+      "Join our QA team to perform manual and automated testing. You will write test plans, develop automated test scripts using Selenium or Cypress, and work with developers to resolve defects.",
   },
   {
     id: 20,
@@ -277,8 +295,9 @@ export let dummyJobs = [
     easy_apply: true,
     posted_at: "3 days ago",
     applicants: "110 applicants",
-    about: "We need a versatile Content Writer to produce engaging blogs, articles, and copy for our clients. Strong SEO knowledge and impeccable grammar are required. Portfolio submission is mandatory."
-  }
+    about:
+      "We need a versatile Content Writer to produce engaging blogs, articles, and copy for our clients. Strong SEO knowledge and impeccable grammar are required. Portfolio submission is mandatory.",
+  },
 ];
 
 export const addDummyJob = (job) => {
@@ -290,7 +309,7 @@ export const removeDummyJob = (jobId) => {
 };
 
 export const applyToDummyJob = (jobId) => {
-  const job = dummyJobs.find(j => j.id == jobId);
+  const job = dummyJobs.find((j) => j.id == jobId);
   if (job) {
     job.has_applied = true;
   }

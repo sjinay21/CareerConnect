@@ -1,5 +1,5 @@
 "use client";
-import PublicRoute from '@/Route/publicroute';
+import PublicRoute from "@/Route/publicroute";
 import React from "react";
 import Link from "next/link";
 import { useAppNavigation } from "@/hooks/useNavigation";
@@ -9,7 +9,11 @@ import GoogleLoginComp from "@/components/auth/googlelogincomp";
 import { registerSchema } from "../../schemas/authSchema";
 import { registerUser } from "../../utils/api";
 import InfoMessage from "@/components/ui/InfoMessage";
-import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
+import {
+  TOAST_MESSAGES,
+  showSuccessToast,
+  showErrorToast,
+} from "@/components/ui/toastUtils";
 
 function Register() {
   const { goToLogin } = useAppNavigation();
@@ -36,7 +40,9 @@ function Register() {
                 }, 1000);
               } else {
                 const errorData = await res.json();
-                showErrorToast(errorData.message || TOAST_MESSAGES.REGISTER_ERROR);
+                showErrorToast(
+                  errorData.message || TOAST_MESSAGES.REGISTER_ERROR,
+                );
               }
             } catch (err) {
               showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
@@ -60,7 +66,6 @@ function Register() {
                 {errors.name && touched.name ? (
                   <p className="text-red-500 text-sm mt-1">{errors.name}</p>
                 ) : null}
-
               </div>
 
               <div>
@@ -97,10 +102,7 @@ function Register() {
                 ) : null}
               </div>
 
-              <Buttonvariants
-                variant="primary"
-                type="submit"
-              >
+              <Buttonvariants variant="primary" type="submit">
                 Register
               </Buttonvariants>
             </Form>
@@ -129,8 +131,10 @@ function Register() {
   );
 }
 
-
 export default function WrappedRegister() {
-  return <PublicRoute><Register /></PublicRoute>;
+  return (
+    <PublicRoute>
+      <Register />
+    </PublicRoute>
+  );
 }
-

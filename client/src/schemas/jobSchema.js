@@ -17,9 +17,16 @@ export const jobCreateSchema = yup.object().shape({
     .typeError("Must be a number")
     .required("Maximum Salary is required")
     .positive("Must be a positive number")
-    .moreThan(yup.ref('salary_min'), "Maximum salary must be greater than minimum salary"),
+    .moreThan(
+      yup.ref("salary_min"),
+      "Maximum salary must be greater than minimum salary",
+    ),
   currency: yup.string().required("Currency is required"),
   salary_period: yup.string().required("Salary Period is required"),
   post_at: yup.string().required("Posted Date is required"),
-  applicant_limit: yup.number().typeError("Must be a number").nullable().positive("Must be a positive number"),
+  applicant_limit: yup
+    .number()
+    .typeError("Must be a number")
+    .nullable()
+    .positive("Must be a positive number"),
 });

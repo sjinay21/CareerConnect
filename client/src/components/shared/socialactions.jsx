@@ -13,7 +13,14 @@ import SmallModel from "@/components/shared/smallmodel";
 import { toast } from "react-hot-toast";
 import { useProfile } from "@/hooks/useProfile";
 
-export default function SocialActions({ postId, initialLikes, initialLiked, initialCommentsCount, triggerShare, onShareClose }) {
+export default function SocialActions({
+  postId,
+  initialLikes,
+  initialLiked,
+  initialCommentsCount,
+  triggerShare,
+  onShareClose,
+}) {
   const { profile } = useProfile();
   const [likes, setLikes] = useState(initialLikes || 0);
   const [liked, setLiked] = useState(initialLiked || false);
@@ -34,10 +41,13 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
   }, [triggerShare]);
 
   const generateShareId = (length = 8) => {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let result = "";
     for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length),
+      );
     }
     return result;
   };
@@ -121,7 +131,7 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
         authorSummary: c.summary,
         created_at: c.created_at,
         profile_picture_url: c.profile_picture_url,
-        replies: []
+        replies: [],
       };
     }
 
@@ -171,7 +181,7 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
         const updatedData = await updatedResponse.json();
         if (updatedData.success) {
           setComments(formatComments(updatedData.comments));
-          setCommentsCount(prev => prev + 1);
+          setCommentsCount((prev) => prev + 1);
         }
         setCommentText("");
       }
@@ -191,7 +201,7 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
         const updatedData = await updatedResponse.json();
         if (updatedData.success) {
           setComments(formatComments(updatedData.comments));
-          setCommentsCount(prev => prev + 1);
+          setCommentsCount((prev) => prev + 1);
         }
       }
     } catch (error) {
@@ -211,31 +221,40 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
             {likes} Likes
           </span>
         </div>
-        <span className="text-sm text-gray-600">
-          {commentsCount} Comments
-        </span>
+        <span className="text-sm text-gray-600">{commentsCount} Comments</span>
       </div>
 
       {showLikesModal && (
-        <div className="p-4 ">
+        <div className="p-4">
           <div className="flex justify-between items-center mb-3">
             <h4 className="font-semibold text-sm text-black">Reactions</h4>
           </div>
           <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto">
-            {likedUsers.length > 0 ? likedUsers.map((user) => (
-              <div key={user.id} className="flex gap-3 items-center">
-                <img
-                  src={user.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
-                  alt={user.name}
-                  className="w-10 h-10 rounded-full "
-                />
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <span className="font-semibold text-sm text-gray-900">{user.name}</span>
-                  <span className="text-xs text-gray-500 ">{user.summary || "LinkedIn Member"}</span>
+            {likedUsers.length > 0 ? (
+              likedUsers.map((user) => (
+                <div key={user.id} className="flex gap-3 items-center">
+                  <img
+                    src={
+                      user.profile_picture_url ||
+                      "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+                    }
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div className="flex flex-col w-full overflow-hidden">
+                    <span className="font-semibold text-sm text-gray-900">
+                      {user.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {user.summary || "LinkedIn Member"}
+                    </span>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-4">
+                No likes yet.
               </div>
-            )) : (
-              <div className="text-center text-gray-500 py-4">No likes yet.</div>
             )}
           </div>
         </div>
@@ -277,18 +296,17 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
 
       {showComments && (
         <div className="p-4">
-
           <div className="flex gap-3 items-center">
             <img
-              src={profile?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
-              className="w-10 h-10 rounded-full shrink-0 object-cover"
+              src={
+                profile?.profile_picture_url ||
+                "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+              }
+              className="w-10 h-10 rounded-full object-cover"
               alt="user"
             />
 
-            <form
-              className="flex gap-2 flex-1"
-              onSubmit={handleonSubmit}
-            >
+            <form className="flex gap-2 w-full" onSubmit={handleonSubmit}>
               <Input
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
@@ -315,10 +333,13 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
       )}
 
       {showSharePopup && (
-        <SmallModel title="Share post" onClose={() => {
-          setShowSharePopup(false);
-          if (onShareClose) onShareClose();
-        }}>
+        <SmallModel
+          title="Share post"
+          onClose={() => {
+            setShowSharePopup(false);
+            if (onShareClose) onShareClose();
+          }}
+        >
           <div className="flex flex-col gap-4 py-6 px-2">
             <div className="break-all text-sm text-gray-700 font-medium">
               {generatedShareUrl}
@@ -331,9 +352,6 @@ export default function SocialActions({ postId, initialLikes, initialLiked, init
           </div>
         </SmallModel>
       )}
-
-
-
     </Card>
   );
 }

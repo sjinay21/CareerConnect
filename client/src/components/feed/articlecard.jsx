@@ -8,7 +8,10 @@ export default function ArticleCard({ article }) {
         <div className="w-12 h-12 rounded-4xl">
           <img
             className="rounded-4xl w-12 h-12 border-white cursor-pointer object-cover bg-white"
-            src={article?.authorProfilePicture || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+            src={
+              article?.authorProfilePicture ||
+              "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+            }
             alt="image"
           />
         </div>
@@ -20,9 +23,7 @@ export default function ArticleCard({ article }) {
       </div>
 
       <div className="bg-white rounded-lg p-5">
-        <div className="text-3xl font-bold mb-4">
-          {article.title}
-        </div>
+        <div className="text-3xl font-bold mb-4">{article.title}</div>
 
         <div className="text-lg text-gray-700 whitespace-pre-line">
           {article.content}

@@ -10,7 +10,6 @@ export const loginSchema = Yup.object({
     .required("Password is required"),
 });
 
-
 export const registerSchema = Yup.object({
   name: Yup.string()
     .min(3, "Name must be at least 3 characters")
@@ -26,12 +25,8 @@ export const registerSchema = Yup.object({
 });
 
 export const onboardingSchema = Yup.object({
-  summary: Yup.string()
-    .required("Summary is required"),
-  location: Yup.string()
-    .required("Location is required"),
-  about: Yup.string()
-    .required("About is required"),
-  skills: Yup.string()
-    .required("Skills are required"),
+  summary: Yup.string().required("Summary is required"),
+  location: Yup.string().required("Location is required"),
+  about: Yup.string().required("About is required"),
+  skills: Yup.string().required("Skills are required"),
 });

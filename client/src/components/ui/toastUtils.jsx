@@ -9,7 +9,7 @@ export const TOAST_MESSAGES = {
 
   REGISTER_SUCCESS: "Registration successful! Please log in.",
   REGISTER_ERROR: "Registration failed",
-  
+
   LOGOUT_SUCCESS: "Logged out successfully",
 
   POST_CREATED: "Post created successfully!",
@@ -43,11 +43,11 @@ export function CustomToaster() {
           borderRadius: "12px",
           padding: "16px 24px",
           zIndex: 999999,
-          color: "#fff", 
+          color: "#fff",
         },
         success: {
           style: {
-            background: "#10b981", 
+            background: "#10b981",
           },
           iconTheme: {
             primary: "#ffffff",
@@ -62,7 +62,7 @@ export function CustomToaster() {
             primary: "#ffffff",
             secondary: "#ef4444",
           },
-        }
+        },
       }}
     />
   );
@@ -81,7 +81,7 @@ export const showDeleteToast = (message) => {
   console.log("[toastUtils] showDeleteToast called with:", message);
   toast.success(message, {
     style: {
-      background: "#ef4444", 
+      background: "#ef4444",
       color: "#fff",
     },
     iconTheme: {

@@ -1,16 +1,16 @@
 export const users = [
   {
-    id:1,
+    id: 1,
     name: "User-1",
     position: "Frontend developer",
   },
   {
-    id:2,
+    id: 2,
     name: "User-2",
     position: "UI/UX designer",
   },
   {
-    id:3,
+    id: 3,
     name: "User-3",
     position: "Backend developer",
   },

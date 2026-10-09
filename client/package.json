@@ -18,7 +18,7 @@
     "formik": "^2.4.9",
     "next": "^16.3.5",
     "react": "^19.3.0",
-    "react-cooldown": "^0.0.12",
+    "react-countdown": "^2.3.6",
     "react-dom": "^19.3.0",
     "react-hot-toast": "^2.6.1",
     "react-md": "^7.0.8",

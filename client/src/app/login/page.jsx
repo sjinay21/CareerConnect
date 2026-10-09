@@ -1,5 +1,5 @@
 "use client";
-import PublicRoute from '@/Route/publicroute';
+import PublicRoute from "@/Route/publicroute";
 import React from "react";
 import Link from "next/link";
 import { useAppNavigation } from "@/hooks/useNavigation";
@@ -9,7 +9,11 @@ import GoogleLoginComp from "@/components/auth/googlelogincomp";
 import { loginSchema } from "../../schemas/authSchema";
 import { loginUser, getUserProfile } from "../../utils/api";
 import InfoMessage from "@/components/ui/InfoMessage";
-import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
+import {
+  TOAST_MESSAGES,
+  showSuccessToast,
+  showErrorToast,
+} from "@/components/ui/toastUtils";
 
 function Login() {
   const { goToFeeds, goToOnboarding } = useAppNavigation();
@@ -42,14 +46,14 @@ function Login() {
               if (res.ok) {
                 // Store a generic user flag so the UI knows we are authenticated
                 localStorage.setItem("user", "true");
-                
+
                 // Check if profile is complete
                 try {
                   const profileRes = await getUserProfile();
                   if (profileRes.ok) {
                     const profileData = await profileRes.json();
                     const { summary, location, about } = profileData.user;
-                    
+
                     if (!summary || !location || !about) {
                       localStorage.setItem("profileComplete", "false");
                       showSuccessToast(TOAST_MESSAGES.NEW_USER_WELCOME);
@@ -64,7 +68,7 @@ function Login() {
                 } catch (e) {
                   console.error("Failed to check profile completion");
                 }
-                
+
                 showSuccessToast(TOAST_MESSAGES.LOGIN_SUCCESS);
                 setTimeout(() => {
                   goToFeeds();
@@ -116,10 +120,7 @@ function Login() {
                 ) : null}
               </div>
 
-              <Buttonvariant
-                variant="primary"
-                type="submit"
-              >
+              <Buttonvariant variant="primary" type="submit">
                 Login
               </Buttonvariant>
             </Form>
@@ -140,8 +141,10 @@ function Login() {
   );
 }
 
-
 export default function WrappedLogin() {
-  return <PublicRoute><Login /></PublicRoute>;
+  return (
+    <PublicRoute>
+      <Login />
+    </PublicRoute>
+  );
 }
-

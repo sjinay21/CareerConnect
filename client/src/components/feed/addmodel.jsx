@@ -22,14 +22,14 @@ export default function AddModel({ onPost }) {
     if (!postText.trim() && !selectedImage) {
       return;
     }
-    
+
     const formData = new FormData();
     formData.append("content", postText);
-    
+
     if (selectedImage) {
       formData.append("image", selectedImage);
     }
-    
+
     await onPost(formData);
   }
 
@@ -40,7 +40,10 @@ export default function AddModel({ onPost }) {
           <img
             className="w-12 h-12 object-cover rounded-full bg-white"
             alt="profile"
-            src={profile?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"}
+            src={
+              profile?.profile_picture_url ||
+              "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+            }
           />
         </div>
         <div className="text-2xl font-semibold">{profile?.name || "User"}</div>
@@ -53,16 +56,22 @@ export default function AddModel({ onPost }) {
           variant="assign"
           value={postText}
           onChange={(e) => setPostText(e.target.value)}
-        >
-        </Textarea>
+        ></Textarea>
       </div>
 
       {previewUrl && (
         <div className="relative my-3">
-          <img className="max-w-full h-40 object-cover rounded-xl" src={previewUrl} alt="Preview" />
-          <button 
+          <img
+            className="max-w-full h-40 object-cover rounded-xl"
+            src={previewUrl}
+            alt="Preview"
+          />
+          <button
             className="absolute top-1 left-1 bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-            onClick={() => { setSelectedImage(null); setPreviewUrl(null); }}
+            onClick={() => {
+              setSelectedImage(null);
+              setPreviewUrl(null);
+            }}
           >
             X
           </button>
@@ -70,18 +79,21 @@ export default function AddModel({ onPost }) {
       )}
       <div className="flex justify-between items-center mt-3">
         <div className="my-2">
-          <label className="cursor-pointer text-gray-600 hover:text-black p-2 rounded-full hover:bg-gray-100 transition" htmlFor="inputfile">
+          <label
+            className="cursor-pointer text-gray-600 hover:text-black p-2 rounded-full hover:bg-gray-100 transition"
+            htmlFor="inputfile"
+          >
             <ImageIcon />
           </label>
-          <input 
-            type="file" 
+          <input
+            type="file"
             accept="image/*"
-            className="hidden" 
+            className="hidden"
             id="inputfile"
             onChange={handleImageChange}
           />
         </div>
-        <div className="flex-1"></div>
+        <div className="w-full"></div>
         <button
           onClick={handlePost}
           className="cursor-pointer text-white font-semibold bg-blue-700 hover:bg-blue-800 py-2 px-6 rounded-full self-center"
