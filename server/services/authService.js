@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { findByEmail, create } from "../models/User.js";
 
 async function register(userData) {
-  const { name, email, password } = userData;
+  const { name, email, password, role } = userData;
 
   const existingUser = await findByEmail(email);
   if (existingUser) {
@@ -15,7 +15,7 @@ async function register(userData) {
   const password_hash = bcrypt.hashSync(password, 10);
   
   try {
-    const newUser = await create({ name, email, password: password_hash });
+    const newUser = await create({ name, email, password: password_hash, role });
     return newUser;
   } catch (err) {
     if (err.code === '23505') { // Postgres unique_violation code

@@ -2,26 +2,24 @@
 
 import { useAppNavigation } from "@/hooks/useNavigation";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
+import { useEffect, useState } from "react";
+import { isAuthenticated } from "@/utils/api";
+import Navbar1 from "@/components/layout/navbar1";
+import Navbar2 from "@/components/layout/navbar2";
 
 export default function NotFound() {
-  const { goToFeeds, goToHome } = useAppNavigation();
+  const { goToFeeds } = useAppNavigation();
+  const [isLogin, setIsLogin] = useState(false);
+
+  useEffect(() => {
+    setIsLogin(isAuthenticated());
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f3f2ef] flex flex-col">
-      <header className="bg-white w-full h-[52px] flex items-center px-4 lg:px-24 border-b border-gray-200">
-        <button onClick={goToHome} className="flex items-center">
-          <h3 className="text-blue-600 font-bold text-xl md:text-3xl hidden sm:block">
-            Linked
-          </h3>
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10"
-            alt="Linkedlogo"
-            className="w-[34px] h-[34px] rounded cursor-pointer mx-2"
-          />
-        </button>
-      </header>
+      {isLogin ? <Navbar2 /> : <Navbar1 />}
 
-      <main className="w-full flex flex-cols items-center justify-center p-4">
+      <main className="w-full flex-grow flex items-center justify-center p-4">
         <div className="text-center max-w-[400px] w-full bg-white p-8 rounded-lg shadow-sm border border-gray-300">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-200">
             <SearchOffIcon className="text-gray-400" sx={{ fontSize: 40 }} />

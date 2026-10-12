@@ -13,6 +13,9 @@ export const ROUTES = {
   JOBS: "/jobs",
   JOB_CREATE: "/job_create",
   JOB_TRACKER: "/job_tracker",
+  ADMIN_DASHBOARD: "/admin-dashboard",
+  ADMIN_PLANS: "/admin-plans",
+  PLAN: "/plan",
 };
 
 export const useAppNavigation = () => {
@@ -34,5 +37,8 @@ export const useAppNavigation = () => {
     goToJob: (id) => router.push(`/jobs/${id}`),
     goToJobCreate: () => router.push(ROUTES.JOB_CREATE),
     goToJobTracker: () => router.push(ROUTES.JOB_TRACKER),
+    goToAdminDashboard: () => router.push(ROUTES.ADMIN_DASHBOARD),
+    goToAdminPlans: () => router.push(ROUTES.ADMIN_PLANS),
+    goToPlan: () => router.push(ROUTES.PLAN),
   };
 };

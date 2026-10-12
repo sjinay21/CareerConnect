@@ -25,4 +25,11 @@ async function authMiddleware(req, res, next) {
     });
   }
 }
+export async function adminMiddleware(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: "Forbidden: Admins only" });
+  }
+  next();
+}
+
 export default authMiddleware;

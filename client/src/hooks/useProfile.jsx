@@ -12,6 +12,9 @@ export function useProfile() {
     skills: "",
     profile_picture_url: null,
     banner_url: null,
+    subscription_plan: "Free",
+    expiry_date: null,
+    role: "user",
   });
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { searchUsers as searchUsersModel } from "../models/User.js";
+import { getViewCount } from "../models/ProfileView.js";
 import { PAGINATION_LIMITS } from "../config/paginationConfig.js";
 
 export async function searchUsersService(search = "", rawLimit, rawOffset) {
@@ -15,4 +16,13 @@ export async function searchUsersService(search = "", rawLimit, rawOffset) {
     const hasNextPage = offset + users.length < total;
 
     return {data: users,pagination: {limit,offset,totalUsers: total,hasNextPage}};
+}
+
+export async function getProfileViewCountService(profileOwnerId) {
+    try {
+        return await getViewCount(profileOwnerId);
+    } catch (error) {
+        console.error("Error fetching profile view count:", error);
+        return 0; // fallback to 0 if there's a db error
+    }
 }

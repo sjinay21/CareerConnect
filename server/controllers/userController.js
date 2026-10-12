@@ -1,21 +1,30 @@
 import { updateProfile, getAllUsersList, findById, searchUsers as searchUsersModel } from "../models/User.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { getProfileViewCountService } from "../services/userService.js";
  
-export const getMe = (req, res) => {
-  // req.user is populated by authMiddleware
-  res.status(200).json({
-    user: {
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
-      about: req.user.about,
-      summary: req.user.summary,
-      location: req.user.location,
-      skills: req.user.skills,
-      profile_picture_url: req.user.profile_picture_url,
-      banner_url: req.user.banner_url,
-    },
-  });
+export const getMe = async (req, res) => {
+  try {
+    const profileViews = await getProfileViewCountService(req.user.id);
+    
+    res.status(200).json({
+      user: {
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        about: req.user.about,
+        summary: req.user.summary,
+        location: req.user.location,
+        skills: req.user.skills,
+        profile_picture_url: req.user.profile_picture_url,
+        banner_url: req.user.banner_url,
+        role: req.user.role,
+      },
+      profileViews
+    });
+  } catch (error) {
+    console.error("Error fetching own profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 export const updateMe = async (req, res) => {
@@ -114,11 +123,20 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await findById(id);
+    const profileOwnerId = parseInt(id, 10);
+    
+    if (isNaN(profileOwnerId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const user = await findById(profileOwnerId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // Get the updated view count
+    const profileViews = await getProfileViewCountService(profileOwnerId);
 
     res.status(200).json({
       user: {
@@ -132,6 +150,7 @@ export const getUserById = async (req, res) => {
         profile_picture_url: user.profile_picture_url,
         banner_url: user.banner_url,
       },
+      profileViews
     });
   } catch (error) {
     console.error("Error fetching user by id:", error);

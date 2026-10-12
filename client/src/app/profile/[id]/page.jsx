@@ -19,6 +19,7 @@ import {
   getConnections,
   updateUserProfile,
   createOrGetConversation,
+  logoutUser,
 } from "@/utils/api";
 import {
   TOAST_MESSAGES,
@@ -33,6 +34,7 @@ function ProfilePage() {
   const userId = params.id;
   const { profile: loggedInUser } = useProfile();
   const [profile, setProfile] = useState(null);
+  const [profileViewsCount, setProfileViewsCount] = useState(null);
 
   const isOwnProfile =
     loggedInUser?.id != null &&
@@ -51,6 +53,25 @@ function ProfilePage() {
 
   const [posts, setPosts] = useState([]);
   const [connectionsCount, setConnectionsCount] = useState(0);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      localStorage.removeItem("user");
+      localStorage.removeItem("profileComplete");
+      showSuccessToast(TOAST_MESSAGES.LOGOUT_SUCCESS);
+      
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 800);
+    } catch (error) {
+      console.error(error);
+      showErrorToast("Logout failed");
+    } finally {
+      setIsLogoutModalOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (!userId || !loggedInUser?.id) return;
@@ -71,6 +92,7 @@ function ProfilePage() {
           if (data.user) {
             setProfile(data.user);
             currentProfileId = data.user.id;
+            setProfileViewsCount(data.profileViews ?? 0);
           }
         }
 
@@ -284,10 +306,10 @@ function ProfilePage() {
                     )}
                     <div className="md:flex w-full justify-between">
                       <div className="my-5 flex gap-5 md:gap-0">
-                        <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold">
+                        <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold mr-4">
                           Open to
                         </div>
-                        <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold">
+                        <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold mr-4">
                           Share
                         </div>
                       </div>
@@ -296,7 +318,7 @@ function ProfilePage() {
                           <>
                             <div
                               onClick={handleMessage}
-                              className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold"
+                              className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold mr-4"
                             >
                               Message
                             </div>
@@ -304,6 +326,14 @@ function ProfilePage() {
                               Connect
                             </div>
                           </>
+                        )}
+                        {isOwnProfile && (
+                          <div
+                            onClick={() => setIsLogoutModalOpen(true)}
+                            className="cursor-pointer px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-500 hover:text-white font-semibold transition-colors"
+                          >
+                            Logout
+                          </div>
                         )}
                       </div>
                     </div>
@@ -368,9 +398,20 @@ function ProfilePage() {
           )}
         </div>
 
-        <div className="hidden md:flex md:w-[28%]">
-          <div className="my-5 sticky top-19">
+        <div className="hidden md:flex flex-col gap-4 md:w-[28%] my-5">
+          <div className="sticky top-19 flex flex-col gap-4 w-full">
             <Advertisement />
+            
+            <Card padding={4}>
+              <div className="font-semibold text-gray-800 mb-1">
+                Profile views
+              </div>
+              <div className="text-gray-600 text-sm">
+                {profileViewsCount === null 
+                  ? "Loading views..." 
+                  : `Profile views: ${profileViewsCount}`}
+              </div>
+            </Card>
           </div>
         </div>
       </div>
@@ -527,6 +568,43 @@ function ProfilePage() {
               <Buttonvariants onClick={handleSave} variant="psend">
                 Save
               </Buttonvariants>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden ">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Logout</h2>
+              <button 
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="text-red-500 hover:text-red-700 transition-colors text-2xl leading-none pb-1"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6 md:p-8">
+              <p className="text-lg text-center text-black font-medium mb-8 pb-6">
+              Are you sure you want to logout?
+              </p>
+              
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="px-6 py-2 bg-gray-50 border border-black rounded-md text-black font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-6 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </div>

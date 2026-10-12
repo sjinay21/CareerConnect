@@ -2,7 +2,8 @@ import * as authService from "../services/authService.js";
 import jwt from "jsonwebtoken";
 async function register(req, res) {
   try {
-    await authService.register(req.body);
+    const userData = { ...req.body, role: "user" };
+    await authService.register(userData);
     res.status(201).json({ message: "Registration successful. Please log in." });
   } catch (error) {
     res.status(error.statusCode || 500).json({ message: error.message });

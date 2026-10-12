@@ -12,7 +12,7 @@ import { CustomToaster } from "@/components/ui/toastUtils";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body className="no-scrollbar">
         <GoogleOAuthProvider
           clientId={process.env.NEXT_PUBLIC_GOOGLE_AUTH_KEY || "dummy"}
         >

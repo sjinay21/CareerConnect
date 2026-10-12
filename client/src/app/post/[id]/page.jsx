@@ -9,10 +9,11 @@ import {
   showSuccessToast,
   showErrorToast,
 } from "@/components/ui/toastUtils";
+import { useAppNavigation } from "@/hooks/useNavigation";
 
 function SinglePostPage() {
   const params = useParams();
-  const router = useRouter();
+  const { router, goToFeeds } = useAppNavigation();
   const rawId = params.id;
   // The first 8 characters are the random string. The rest is the actual post ID!
   const id = rawId.length > 8 ? rawId.substring(8) : rawId;
@@ -66,7 +67,7 @@ function SinglePostPage() {
         showSuccessToast("Post deleted successfully");
         // Optionally redirect back to feed after delete
         setTimeout(() => {
-          router.push("/feeds");
+          goToFeeds();
         }, 1500);
       } else {
         const errorData = await res.json();
@@ -97,7 +98,7 @@ function SinglePostPage() {
             </h2>
             <p>This post may have been deleted or the link is invalid.</p>
             <button
-              onClick={() => router.push("/feeds")}
+              onClick={() => goToFeeds()}
               className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
             >
               Go to Feeds

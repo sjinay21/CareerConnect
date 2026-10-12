@@ -17,6 +17,9 @@ import connectionRoutes from "./routes/connectionRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import jobsRoutes from "./routes/jobsRoutes.js";
+import subscriptionPlanRoutes from "./routes/subscriptionPlanRoutes.js";
+import subscriptionRoutes from "./routes/subscriptionRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 import { socketAuthMiddleware } from "./middleware/socketAuthMiddleware.js";
 import { initializeSocket } from "./socket/socket.js";
 import initializeCronJobs from "./utils/cronJobs.js";
@@ -60,7 +63,11 @@ app.use("/experiences", experienceRoutes);
 app.use("/connections", connectionRoutes);
 app.use("/conversations", conversationRoutes);
 app.use("/messages", messageRoutes);
-app.use("/jobs",jobsRoutes)
+app.use("/jobs", jobsRoutes);
+app.use("/subscription-plans", subscriptionPlanRoutes);
+app.use("/subscriptions", subscriptionRoutes);
+app.use("/payments", paymentRoutes);
+
 // Socket Authentication Middleware
 io.use(socketAuthMiddleware);
 

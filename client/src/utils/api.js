@@ -294,3 +294,93 @@ export const getJobApplicants = async () => {
     method: "GET",
   });
 };
+
+export const getActivePlans = async () => {
+  return await customFetch("/subscription-plans", {
+    method: "GET",
+  });
+};
+
+export const createPlan = async (data) => {
+  return await customFetch("/subscription-plans", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const updatePlan = async (id, data) => {
+  return await customFetch(`/subscription-plans/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const deactivatePlan = async (id) => {
+  return await customFetch(`/subscription-plans/${id}`, {
+    method: "DELETE",
+  });
+};
+
+export const getAllPlansAdmin = async () => {
+  return await customFetch("/subscription-plans/all", {
+    method: "GET",
+  });
+};
+
+export const createPlanAdmin = async (data) => {
+  return await customFetch("/subscription-plans", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const updatePlanAdmin = async (id, data) => {
+  return await customFetch(`/subscription-plans/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const deactivatePlanAdmin = async (id) => {
+  return await customFetch(`/subscription-plans/${id}`, {
+    method: "DELETE",
+  });
+};
+
+export const activatePlanAdmin = async (id) => {
+  return await customFetch(`/subscription-plans/${id}/activate`, {
+    method: "PATCH",
+  });
+};
+
+export const createSubscription = async (planId) => {
+  return await customFetch("/subscriptions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ plan_id: planId }),
+  });
+};
+
+export const createPayment = async (data) => {
+  return await customFetch("/payments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const getMySubscription = async () => {
+  return await customFetch("/subscriptions/me", {
+    method: "GET",
+  });
+};
+
+export const cancelMySubscription = async () => {
+  return await customFetch("/subscriptions/me/cancel", {
+    method: "POST",
+  });
+};
