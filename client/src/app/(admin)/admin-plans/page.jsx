@@ -6,6 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Formik, Form, Field } from "formik";
 import { planSchema } from "@/schemas/planSchema";
 import EditIcon from '@mui/icons-material/Edit';
+import { showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 export default function SubscriptionPlansPage() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,12 +92,13 @@ export default function SubscriptionPlansPage() {
       try {
         const response = await deactivatePlan(plan.id);
         if (response.ok) {
+          showSuccessToast("Plan deleted successfully");
           fetchPlans();
         } else {
-          alert("Failed to delete plan.");
+          showErrorToast("Failed to delete plan.");
         }
       } catch (err) {
-        alert("Network error during deletion.");
+        showErrorToast("Network error during deletion.");
       }
     }
   };

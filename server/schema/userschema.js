@@ -11,4 +11,15 @@ const loginSchema = Joi.object({
   password: Joi.string().min(6).required()
 });
 
-export {registerSchema,loginSchema};
+const updateUserSchema = Joi.object({
+  name: Joi.string().trim().min(1),
+  email: Joi.string().email(),
+  password: Joi.string().min(6),
+  currentPassword: Joi.string(),
+  about: Joi.string().allow("", null),
+  summary: Joi.string().allow("", null),
+  location: Joi.string().allow("", null),
+  skills: Joi.string().allow("", null),
+});
+
+export { registerSchema, loginSchema, updateUserSchema };

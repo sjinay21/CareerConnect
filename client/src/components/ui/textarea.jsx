@@ -5,6 +5,7 @@ function Textarea({
   cols = "",
   placeholder = "",
   variant = "",
+  ...props
 }) {
   const variants = {
     default:
@@ -22,6 +23,7 @@ function Textarea({
       rows={rows}
       placeholder={placeholder}
       className={variants[variant]}
+      {...props}
     />
   );
 }

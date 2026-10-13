@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import GoogleLoginComp from "@/components/auth/googlelogincomp";
+import { ROUTES } from "@/hooks/useNavigation";
 
 export default function LandingPage() {
   return (
@@ -15,7 +16,7 @@ export default function LandingPage() {
             <GoogleLoginComp />
           </div>
           <Link
-            href={"/login"}
+            href={ROUTES.LOGIN}
             className="flex mx-auto py-2 px-2 bg-white gap-2 rounded-3xl w-[70%] text-black hover:bg-gray-100 border-2 cursor-pointer justify-center"
           >
             Sign in with Email
@@ -24,24 +25,24 @@ export default function LandingPage() {
           <div className="text-xs text-gray-500 mt-2 text-left">
             By clicking Continue to join or sign in, you agree to LinkedIn's
             <span className="text-blue-700 font-semibold hover:underline">
-              {" "}
+           
               User Agreement
             </span>
             ,
             <span className="text-blue-700 font-semibold hover:underline">
-              {" "}
+           
               Privacy Policy
             </span>
             , and
             <span className="text-blue-700 font-semibold hover:underline">
-              {" "}
+           
               Cookie Policy
             </span>
             .
           </div>
 
           <Link
-            href={"/register"}
+            href={ROUTES.REGISTER}
             className="text-base text-gray-800 mt-6 font-medium text-left"
           >
             New to LinkedIn?{" "}

@@ -8,15 +8,17 @@ import EditIcon from "@mui/icons-material/Edit";
 import Experience from "@/components/profile/experience";
 import Textarea from "@/components/ui/textarea";
 import Buttonvariants from "@/components/ui/button";
-import Input from "@/components/ui/input";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useAppNavigation, ROUTES } from "@/hooks/useNavigation";
 import {getUserById,getUserProfile,getPosts,updatePost,deletePost,getConnections,updateUserProfile,createOrGetConversation,logoutUser,} from "@/utils/api";
 import {TOAST_MESSAGES,showSuccessToast,showErrorToast,} from "@/components/ui/toastUtils";
 import Post from "@/components/feed/post";
+import { Formik, Form } from "formik";
+import { updateProfileSchema } from "@/schemas/authSchema";
 
 function ProfilePage() {
   const params = useParams();
-  const router = useRouter();
+  const { goToMessages } = useAppNavigation();
   const userId = params.id;
   const { profile: loggedInUser } = useProfile();
   const [profile, setProfile] = useState(null);
@@ -24,7 +26,6 @@ function ProfilePage() {
   const isOwnProfile = loggedInUser?.id != null && profile?.id != null && loggedInUser.id == profile.id;
 
   const [editProfile, setEditProfile] = useState(false);
-  const [editData, setEditData] = useState({name: "",summary: "",location: "",about: "",skills: ""});
   const [profilePictureFile, setProfilePictureFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
 
@@ -40,7 +41,7 @@ function ProfilePage() {
       showSuccessToast(TOAST_MESSAGES.LOGOUT_SUCCESS);
       
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.href = ROUTES.LOGIN;
       }, 800);
     } catch (error) {
       console.error(error);
@@ -160,7 +161,7 @@ function ProfilePage() {
     try {
       const response = await createOrGetConversation(profile.id);
       if (response.ok) {
-        router.push("/messages");
+        goToMessages();
       }
     } catch (error) {
       console.error("Error creating/getting conversation", error);
@@ -169,54 +170,9 @@ function ProfilePage() {
 
   function openEditModal() {
     if (!isOwnProfile) return;
-
-    setEditData({
-      name: profile.name || "",
-      summary: profile.summary || "",
-      location: profile.location || "",
-      about: profile.about || "",
-      skills: profile.skills || "",
-    });
     setProfilePictureFile(null);
     setBannerFile(null);
     setEditProfile(true);
-  }
-
-  async function handleSave() {
-    if (!isOwnProfile) return;
-
-    try {
-      const formData = new FormData();
-      formData.append("name", editData.name);
-      formData.append("about", editData.about);
-      formData.append("summary", editData.summary);
-      formData.append("location", editData.location);
-      formData.append("skills", editData.skills);
-
-      if (profilePictureFile) {
-        formData.append("profilePicture", profilePictureFile);
-      }
-
-      if (bannerFile) {
-        formData.append("banner", bannerFile);
-      }
-
-      const res = await updateUserProfile(formData);
-      if (res.ok) {
-        const result = await res.json();
-        if (result.user) {
-          setProfile(result.user);
-        } else {
-          setProfile({ ...profile, ...editData });
-        }
-        setEditProfile(false);
-        showSuccessToast(TOAST_MESSAGES.PROFILE_UPDATED);
-      } else {
-        showErrorToast(TOAST_MESSAGES.PROFILE_UPDATE_ERROR);
-      }
-    } catch (err) {
-      showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
-    }
   }
 
 
@@ -392,150 +348,229 @@ function ProfilePage() {
               </div>
               <div
                 onClick={() => setEditProfile(false)}
-                className="text-3xl cursor-pointer"
+                className="text-3xl cursor-pointer text-gray-400 hover:text-black transition-colors"
               >
                 ×
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">
-                Name
-              </label>
-              <Input
-                type="text"
-                value={editData.name}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    name: e.target.value,
-                  })
+            <Formik
+              initialValues={{
+                name: profile?.name || "",
+                summary: profile?.summary || "",
+                location: profile?.location || "",
+                about: profile?.about || "",
+                skills: profile?.skills || "",
+              }}
+              validationSchema={updateProfileSchema}
+              enableReinitialize
+              onSubmit={async (values, { setSubmitting }) => {
+                const isNameSame = values.name.trim() === (profile?.name || "").trim();
+                const isSummarySame = (values.summary || "").trim() === (profile?.summary || "").trim();
+                const isLocationSame = (values.location || "").trim() === (profile?.location || "").trim();
+                const isAboutSame = (values.about || "").trim() === (profile?.about || "").trim();
+                const isSkillsSame = (values.skills || "").trim() === (profile?.skills || "").trim();
+                const hasNewPicture = profilePictureFile !== null;
+                const hasNewBanner = bannerFile !== null;
+
+                if (isNameSame && isSummarySame && isLocationSame && isAboutSame && isSkillsSame && !hasNewPicture && !hasNewBanner) {
+                  showErrorToast("No changes detected to update.");
+                  setSubmitting(false);
+                  return;
                 }
-                variant="outline"
-              />
-            </div>
 
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">
-                Profile Picture
-              </label>
-              <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer">
-                <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
-                  Choose File
-                </div>
-                <span className="text-black text-sm flex">
-                  {profilePictureFile
-                    ? profilePictureFile.name
-                    : "No file chosen"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setProfilePictureFile(e.target.files[0])}
-                  className="hidden"
-                />
-              </label>
-            </div>
+                try {
+                  const formData = new FormData();
+                  formData.append("name", values.name.trim());
+                  formData.append("about", (values.about || "").trim());
+                  formData.append("summary", (values.summary || "").trim());
+                  formData.append("location", (values.location || "").trim());
+                  formData.append("skills", (values.skills || "").trim());
 
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">
-                Banner Image
-              </label>
-              <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer">
-                <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
-                  Choose File
-                </div>
-                <span className="text-black text-sm w-full">
-                  {bannerFile ? bannerFile.name : "No file chosen"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setBannerFile(e.target.files[0])}
-                  className="hidden"
-                />
-              </label>
-            </div>
+                  if (profilePictureFile) {
+                    formData.append("profilePicture", profilePictureFile);
+                  }
 
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">
-                Summary
-              </label>
-              <Input
-                type="text"
-                value={editData.summary}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    summary: e.target.value,
-                  })
+                  if (bannerFile) {
+                    formData.append("banner", bannerFile);
+                  }
+
+                  const res = await updateUserProfile(formData);
+                  if (res.ok) {
+                    const result = await res.json();
+                    if (result.user) {
+                      setProfile(result.user);
+                    } else {
+                      setProfile((prev) => ({ ...prev, ...values }));
+                    }
+                    setEditProfile(false);
+                    showSuccessToast(TOAST_MESSAGES.PROFILE_UPDATED);
+                  } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    showErrorToast(errorData.message || TOAST_MESSAGES.PROFILE_UPDATE_ERROR);
+                  }
+                } catch (err) {
+                  showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
+                } finally {
+                  setSubmitting(false);
                 }
-                variant="outline"
-              />
-            </div>
+              }}
+            >
+              {({ values, errors, touched, handleChange, handleBlur, isSubmitting }) => (
+                <Form>
+                  <div className="mb-4">
+                    <label className="block mb-1 font-semibold text-black">
+                      Name <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="text"
+                      name="name"
+                      value={values.name}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="Enter your name"
+                      variant="outline"
+                    />
+                    {errors.name && touched.name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    )}
+                  </div>
 
-            <div className="mb-4">
-              <label className="block mb-1 font-semibold text-black">
-                Location
-              </label>
-              <Input
-                type="text"
-                value={editData.location}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    location: e.target.value,
-                  })
-                }
-                variant="outline"
-              />
-            </div>
+                  <div className="mb-4">
+                    <label className="block mb-1 font-semibold text-black">
+                      Profile Picture
+                    </label>
+                    <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer">
+                      <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
+                        Choose File
+                      </div>
+                      <span className="text-black text-sm flex truncate">
+                        {profilePictureFile
+                          ? profilePictureFile.name
+                          : "No file chosen"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setProfilePictureFile(e.target.files[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
 
-            <div className="mb-5">
-              <label className="block mb-1 font-semibold text-black">
-                About
-              </label>
-              <Textarea
-                value={editData.about}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    about: e.target.value,
-                  })
-                }
-                rows="5"
-                variant="default"
-              />
-            </div>
-            <div className="mb-5">
-              <label className="block mb-1 font-semibold text-black">
-                Skills
-              </label>
-              <Textarea
-                value={editData.skills}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    skills: e.target.value,
-                  })
-                }
-                rows="5"
-                variant="default"
-              />
-            </div>
+                  <div className="mb-4">
+                    <label className="block mb-1 font-semibold text-black">
+                      Banner Image
+                    </label>
+                    <label className="w-full border border-black rounded-lg p-2 flex items-center gap-3 cursor-pointer">
+                      <div className="bg-gray-200 text-black px-3 py-1 rounded-md text-sm font-medium border border-gray-300">
+                        Choose File
+                      </div>
+                      <span className="text-black text-sm w-full truncate">
+                        {bannerFile ? bannerFile.name : "No file chosen"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setBannerFile(e.target.files[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
 
-            <div className="flex justify-end gap-3">
-              <Buttonvariants
-                onClick={() => setEditProfile(false)}
-                variant="cancel"
-              >
-                Cancel
-              </Buttonvariants>
+                  <div className="mb-4">
+                    <label className="block mb-1 font-semibold text-black">
+                      Summary
+                    </label>
+                    <Input
+                      type="text"
+                      name="summary"
+                      value={values.summary}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="e.g. Software Engineer at Tech Corp"
+                      variant="outline"
+                    />
+                    {errors.summary && touched.summary && (
+                      <p className="text-red-500 text-xs mt-1">{errors.summary}</p>
+                    )}
+                  </div>
 
-              <Buttonvariants onClick={handleSave} variant="psend">
-                Save
-              </Buttonvariants>
-            </div>
+                  <div className="mb-4">
+                    <label className="block mb-1 font-semibold text-black">
+                      Location
+                    </label>
+                    <Input
+                      type="text"
+                      name="location"
+                      value={values.location}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="e.g. San Francisco, California"
+                      variant="outline"
+                    />
+                    {errors.location && touched.location && (
+                      <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+                    )}
+                  </div>
+
+                  <div className="mb-5">
+                    <label className="block mb-1 font-semibold text-black">
+                      About
+                    </label>
+                    <Textarea
+                      name="about"
+                      value={values.about}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="Write about yourself, your background, and interests..."
+                      rows="5"
+                      variant="default"
+                    />
+                    {errors.about && touched.about && (
+                      <p className="text-red-500 text-xs mt-1">{errors.about}</p>
+                    )}
+                  </div>
+
+                  <div className="mb-5">
+                    <label className="block mb-1 font-semibold text-black">
+                      Skills
+                    </label>
+                    <Textarea
+                      name="skills"
+                      value={values.skills}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="e.g. React, Node.js, JavaScript, Python"
+                      rows="4"
+                      variant="default"
+                    />
+                    {errors.skills && touched.skills && (
+                      <p className="text-red-500 text-xs mt-1">{errors.skills}</p>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                    <Buttonvariants
+                      type="button"
+                      onClick={() => setEditProfile(false)}
+                      variant="cancel"
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </Buttonvariants>
+
+                    <Buttonvariants
+                      type="submit"
+                      variant="psend"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Saving..." : "Save"}
+                    </Buttonvariants>
+                  </div>
+                </Form>
+              )}
+            </Formik>
           </div>
         </div>
       )}

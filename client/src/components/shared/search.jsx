@@ -3,12 +3,15 @@ import { useState, useEffect } from "react";
 import { searchUsers } from "@/utils/api";
 import SearchTwoToneIcon from "@mui/icons-material/SearchTwoTone";
 import Input from "@/components/ui/input";
+import { useAppNavigation } from "@/hooks/useNavigation";
+
 export default function Search({
   onResults,
   showDropdown = true,
   limit = 5,
   offset = 0,
 }) {
+  const { goToProfile } = useAppNavigation();
   const [searchInput, setSearchInput] = useState("");
   const [timer, setTimer] = useState(null);
   const [users, setUsers] = useState([]);
@@ -80,6 +83,7 @@ export default function Search({
               onClick={() => {
                 setSearchInput(user.name);
                 setIsDropdownOpen(false);
+                goToProfile(user.id);
               }}
             >
               <span className="font-semibold text-gray-800">{user.name}</span>

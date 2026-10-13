@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useAppNavigation } from "@/hooks/useNavigation";
+import { useAppNavigation, ROUTES } from "@/hooks/useNavigation";
 import Navbar2 from "@/components/layout/navbar2";
 import { isAuthenticated } from "@/utils/api";
 import { usePathname } from "next/navigation";
@@ -16,9 +16,9 @@ export default function PrivateRoute({ children }) {
       goToLogin();
     } else {
       const isProfileComplete = localStorage.getItem("profileComplete");
-      if (isProfileComplete == "false" && pathname != "/onboarding") {
+      if (isProfileComplete == "false" && pathname != ROUTES.ONBOARDING) {
         goToOnboarding();
-      } else if (isProfileComplete == "true" && pathname == "/onboarding") {
+      } else if (isProfileComplete == "true" && pathname == ROUTES.ONBOARDING) {
         goToFeeds();
       } else {
         setIsLogin(true);
@@ -30,7 +30,7 @@ export default function PrivateRoute({ children }) {
 
   return (
     <>
-      {pathname !== "/onboarding" && <Navbar2 />}
+      {pathname !== ROUTES.ONBOARDING && <Navbar2 />}
       {children}
     </>
   );

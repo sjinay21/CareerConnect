@@ -1,5 +1,6 @@
 const API_URL = "http://localhost:5000";
 import { PAGINATION_LIMITS } from "./paginationConfig";
+import { ROUTES } from "../hooks/useNavigation";
 
 export const customFetch = async (endpoint, options = {}) => {
   options.credentials = "include";
@@ -17,7 +18,7 @@ export const customFetch = async (endpoint, options = {}) => {
     !window.location.href.includes("login")
   ) {
     localStorage.removeItem("user");
-    window.location.href = "/login";
+    window.location.href = ROUTES.LOGIN;
   }
 
   return response;

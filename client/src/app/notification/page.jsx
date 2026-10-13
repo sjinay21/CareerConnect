@@ -7,9 +7,11 @@ import { useProfile } from "@/hooks/useProfile";
 import { useEffect, useState } from "react";
 import { getConnections, updateConnectionStatus } from "@/utils/api";
 import Buttonvariants from "@/components/ui/button";
+import { useAppNavigation } from "@/hooks/useNavigation";
 
 const Notification = () => {
   const { profile } = useProfile();
+  const { goToProfile } = useAppNavigation();
   const [receivedRequests, setReceivedRequests] = useState([]);
 
   useEffect(() => {
@@ -60,7 +62,10 @@ const Notification = () => {
                     key={req.connectionId}
                     className="border-b-1 flex justify-between items-center border-gray-300 p-3"
                   >
-                    <div className="flex gap-4 items-center">
+                    <div
+                      className="flex gap-4 items-center cursor-pointer"
+                      onClick={() => req.user?.id && goToProfile(req.user.id)}
+                    >
                       <img
                         src={
                           req.user.profilePicture ||
@@ -70,7 +75,7 @@ const Notification = () => {
                         className="rounded-full border-2 h-16 w-16 border-white object-cover"
                       />
                       <div>
-                        <span className="font-semibold">{req.user.name}</span>{" "}
+                        <span className="font-semibold hover:underline">{req.user.name}</span>{" "}
                         sent you a connection request.
                       </div>
                     </div>

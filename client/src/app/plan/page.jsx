@@ -4,6 +4,7 @@ import PrivateRoute from "@/Route/privateroute";
 import { getActivePlans, createSubscription, createPayment, getMySubscription, cancelMySubscription } from "@/utils/api";
 import { v4 as uuidv4 } from "uuid";
 import CheckIcon from '@mui/icons-material/Check';
+import { showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 
 function PlanPage() {
   const [plans, setPlans] = useState([]);
@@ -13,6 +14,7 @@ function PlanPage() {
   // Active Subscription State
   const [activeSub, setActiveSub] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   
   // Plan Selection State
   const [processingId, setProcessingId] = useState(null);
@@ -77,10 +79,10 @@ function PlanPage() {
         setPaymentModalOpen(true);
         setPaymentResult(null);
       } else {
-        alert(data.message || "Failed to initiate subscription.");
+        showErrorToast(data.message || "Failed to initiate subscription.");
       }
     } catch (err) {
-      alert("An error occurred while selecting the plan.");
+      showErrorToast("An error occurred while selecting the plan.");
     } finally {
       setProcessingId(null);
     }
@@ -146,24 +148,21 @@ function PlanPage() {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    if (!window.confirm("Are you sure you want to cancel your premium subscription? You will lose access immediately.")) {
-      return;
-    }
-    
+  const confirmCancelSubscription = async () => {
     setCancelling(true);
     try {
       const response = await cancelMySubscription();
       const data = await response.json();
       
       if (response.ok) {
-        alert("Subscription cancelled successfully.");
+        showSuccessToast("Subscription cancelled successfully.");
+        setIsCancelModalOpen(false);
         await fetchPlansAndSubscription();
       } else {
-        alert(data.message || "Failed to cancel subscription.");
+        showErrorToast(data.message || "Failed to cancel subscription.");
       }
     } catch (err) {
-      alert("A network error occurred.");
+      showErrorToast("A network error occurred.");
     } finally {
       setCancelling(false);
     }
@@ -184,7 +183,7 @@ function PlanPage() {
                 <p>Expires: {activeSub.expires_at ? new Date(activeSub.expires_at).toLocaleDateString() : 'Never (Lifetime)'}</p>
               </div>
               <button 
-                onClick={handleCancelSubscription}
+                onClick={() => setIsCancelModalOpen(true)}
                 disabled={cancelling}
                 className="px-6 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300 font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -383,8 +382,49 @@ function PlanPage() {
                 disabled={paymentProcessing}
                 className="w-full py-3 rounded-full font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
               >
-                {paymentResult && paymentResult.success ? 'Return to Dashboard' : 'Cancel'}
+                {paymentResult && paymentResult.success ? 'Return to Page' : 'Cancel'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Subscription Confirmation Modal */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Cancel Subscription</h2>
+              <button 
+                onClick={() => setIsCancelModalOpen(false)}
+                className="text-red-500 hover:text-red-700 transition-colors"
+                disabled={cancelling}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 md:p-8">
+              <p className="text-lg text-center text-black font-medium mb-8 pb-6">
+                Are you sure you want to cancel your premium subscription? You will lose access immediately.
+              </p>
+              
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setIsCancelModalOpen(false)}
+                  disabled={cancelling}
+                  className="px-6 py-2 bg-gray-50 border border-black rounded-md text-black font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmCancelSubscription}
+                  disabled={cancelling}
+                  className="px-6 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {cancelling ? "Cancelling..." : "Confirm"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

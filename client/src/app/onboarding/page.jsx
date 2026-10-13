@@ -1,7 +1,7 @@
 "use client";
 import PrivateRoute from "@/Route/privateroute";
 import React from "react";
-import { useAppNavigation } from "@/hooks/useNavigation";
+import { useAppNavigation, ROUTES } from "@/hooks/useNavigation";
 import { updateUserProfile, logoutUser } from "@/utils/api";
 import Buttonvariants from "@/components/ui/button";
 import InfoMessage from "@/components/ui/InfoMessage";
@@ -47,7 +47,7 @@ function Onboarding() {
       showSuccessToast(TOAST_MESSAGES.LOGOUT_SUCCESS);
 
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.href = ROUTES.LOGIN;
       }, 800);
     } catch (err) {
       console.error("Error logging out:", err);

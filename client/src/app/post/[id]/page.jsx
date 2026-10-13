@@ -1,7 +1,7 @@
 "use client";
 import PrivateRoute from "@/Route/privateroute";
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { getPosts, updatePost, deletePost } from "@/utils/api";
 import Post from "@/components/feed/post";
 import {

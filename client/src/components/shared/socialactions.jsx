@@ -12,6 +12,7 @@ import CommentReplies from "./CommentReplies";
 import SmallModel from "@/components/shared/smallmodel";
 import { toast } from "react-hot-toast";
 import { useProfile } from "@/hooks/useProfile";
+import { ROUTES } from "@/hooks/useNavigation";
 
 export default function SocialActions({
   postId,
@@ -57,7 +58,7 @@ export default function SocialActions({
     // Using window.location.origin ensures it works on your local machine (localhost:3000)
     // Using window.location.origin is REQUIRED for the browser to know this is a real web address
     // It will dynamically resolve to http://localhost:3000 on your machine.
-    const url = `${window.location.origin}/post/${randomStr}${postId}`;
+    const url = `${window.location.origin}${ROUTES.POST(`${randomStr}${postId}`)}`;
     setGeneratedShareUrl(url);
     setShowSharePopup(true);
   };

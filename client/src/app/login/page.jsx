@@ -2,7 +2,7 @@
 import PublicRoute from "@/Route/publicroute";
 import React from "react";
 import Link from "next/link";
-import { useAppNavigation } from "@/hooks/useNavigation";
+import { useAppNavigation, ROUTES } from "@/hooks/useNavigation";
 import { Formik, Form, Field } from "formik";
 import Buttonvariant from "@/components/ui/button";
 import GoogleLoginComp from "@/components/auth/googlelogincomp";
@@ -131,7 +131,7 @@ function Login() {
       <div className="mt-4 mb-10 flex gap-2">
         New to Linkedin?
         <Link
-          href="/register"
+          href={ROUTES.REGISTER}
           className="text-blue-800 cursor-pointer hover:underline"
         >
           Join now

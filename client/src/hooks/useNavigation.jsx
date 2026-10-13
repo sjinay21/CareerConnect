@@ -16,6 +16,10 @@ export const ROUTES = {
   ADMIN_DASHBOARD: "/admin-dashboard",
   ADMIN_PLANS: "/admin-plans",
   PLAN: "/plan",
+  SETTINGS: "/settings",
+  PROFILE: (id) => `/profile/${id}`,
+  JOB: (id) => `/jobs/${id}`,
+  POST: (id) => `/post/${id}`,
 };
 
 export const useAppNavigation = () => {
@@ -32,13 +36,15 @@ export const useAppNavigation = () => {
     goToNotification: () => router.push(ROUTES.NOTIFICATION),
     goToArticleCreate: () => router.push(ROUTES.ARTICLE_CREATE),
     goToOnboarding: () => router.push(ROUTES.ONBOARDING),
-    goToProfile: (id) => router.push(`/profile/${id}`),
+    goToProfile: (id) => router.push(ROUTES.PROFILE(id)),
     goToJobs: () => router.push(ROUTES.JOBS),
-    goToJob: (id) => router.push(`/jobs/${id}`),
+    goToJob: (id) => router.push(ROUTES.JOB(id)),
+    goToPost: (id) => router.push(ROUTES.POST(id)),
     goToJobCreate: () => router.push(ROUTES.JOB_CREATE),
     goToJobTracker: () => router.push(ROUTES.JOB_TRACKER),
     goToAdminDashboard: () => router.push(ROUTES.ADMIN_DASHBOARD),
     goToAdminPlans: () => router.push(ROUTES.ADMIN_PLANS),
     goToPlan: () => router.push(ROUTES.PLAN),
+    goToSettings: () => router.push(ROUTES.SETTINGS),
   };
 };

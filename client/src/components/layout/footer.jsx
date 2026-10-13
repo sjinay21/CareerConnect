@@ -2,15 +2,16 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ROUTES } from "@/hooks/useNavigation";
 
 export default function Footer() {
   const pathname = usePathname();
 
-  if (pathname == "/onboarding") return null;
+  if (pathname == ROUTES.ONBOARDING) return null;
 
   return (
     <footer className="w-full bg-gray-200 flex flex-col items-center justify-center py-6 mt-auto">
-      <Link href="/" className="flex gap-1 items-center cursor-pointer mb-2">
+      <Link href={ROUTES.HOME} className="flex gap-1 items-center cursor-pointer mb-2">
         <h3 className="text-blue-800 font-bold text-2xl">Linked</h3>
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10"

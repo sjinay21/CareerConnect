@@ -1,6 +1,7 @@
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { updateProfile, getAllUsersList, findById, searchUsers, findByEmail } from "../models/User.js";
 import { getProfileViewCountService, recordProfileViewService, getProfileViewersService } from "../services/userService.js";
+import { updateUserSchema } from "../schema/userschema.js";
 import bcrypt from "bcryptjs";
  
 export const getMe = async (req, res) => {
@@ -30,25 +31,29 @@ export const getMe = async (req, res) => {
 
 export const updateMe = async (req, res) => {
   try {
+    // Joi Schema Validation
+    const { error } = updateUserSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
     const userId = req.user.id;
-    const { name, about, summary, location, skills, email, password, currentPassword } = req.body;
+    const { name, email, password, currentPassword } = req.body;
 
     const updates = {};
 
-    // 1. Name validation
+    // 1. Name
     if (name !== undefined) {
-      if (!name.trim()) {
-        return res.status(400).json({ message: "Name cannot be empty" });
-      }
       updates.name = name.trim();
     }
 
-    // 2. Email validation and duplicate check
+    // 2. Email duplicate & same-email check
     if (email !== undefined) {
       const normalizedEmail = email.trim().toLowerCase();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(normalizedEmail)) {
-        return res.status(400).json({ message: "Invalid email address" });
+
+      // Check if new email is identical to current email
+      if (req.user.email && normalizedEmail === req.user.email.toLowerCase()) {
+        return res.status(400).json({ message: "New email cannot be the same as your current email" });
       }
 
       const existingUser = await findByEmail(normalizedEmail);
@@ -69,8 +74,9 @@ export const updateMe = async (req, res) => {
         return res.status(400).json({ message: "Current password is incorrect" });
       }
 
-      if (typeof password !== "string" || password.length < 6) {
-        return res.status(400).json({ message: "New password must be at least 6 characters long" });
+      // Check if new password is identical to current password
+      if (currentPassword === password || (await bcrypt.compare(password, userRecord.password))) {
+        return res.status(400).json({ message: "New password cannot be the same as your current password" });
       }
 
       updates.password = await bcrypt.hash(password, 10);
@@ -94,10 +100,9 @@ export const updateMe = async (req, res) => {
     }
 
     // 5. Optional profile fields
-    if (about !== undefined) updates.about = about || null;
-    if (summary !== undefined) updates.summary = summary || null;
-    if (location !== undefined) updates.location = location || null;
-    if (skills !== undefined) updates.skills = skills || null;
+    ["about", "summary", "location", "skills"].forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field] || null;
+    });
 
     // 6. Update user in DB
     const updatedUser = await updateProfile(userId, updates);

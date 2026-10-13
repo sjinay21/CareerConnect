@@ -11,9 +11,12 @@ import { useProfile } from "@/hooks/useProfile";
 import Model from "@/components/shared/model";
 import EditModel from "./editmodel";
 import CloseIcon from "@mui/icons-material/Close";
+import { showErrorToast } from "@/components/ui/toastUtils";
+import { useAppNavigation } from "@/hooks/useNavigation";
 
 export default function Post({ post, onEdit, onDelete }) {
   const { profile } = useProfile();
+  const { goToProfile } = useAppNavigation();
   const [seemore, setSeemore] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -32,7 +35,7 @@ export default function Post({ post, onEdit, onDelete }) {
     if (result.success) {
       setIsEditing(false);
     } else {
-      alert("Failed to update post:" + result.message);
+      showErrorToast("Failed to update post: " + (result.message || "Unknown error"));
     }
   };
 
@@ -43,6 +46,7 @@ export default function Post({ post, onEdit, onDelete }) {
           <div className="flex gap-3">
             <div className="w-12 h-12 rounded-4xl">
               <img
+                onClick={() => post?.authorId && goToProfile(post.authorId)}
                 className="rounded-4xl w-12 h-12 border-white cursor-pointer object-cover bg-white"
                 src={
                   post?.authorProfilePicture ||
@@ -53,7 +57,10 @@ export default function Post({ post, onEdit, onDelete }) {
             </div>
 
             <div>
-              <div className="text-lg font-semibold">
+              <div
+                onClick={() => post?.authorId && goToProfile(post.authorId)}
+                className="text-lg font-semibold cursor-pointer hover:underline"
+              >
                 {post?.authorName || "User"}
               </div>
               <div className="text-xs text-gray-500">

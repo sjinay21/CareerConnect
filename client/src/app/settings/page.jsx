@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import PrivateRoute from "@/Route/privateroute";
 import PersonIcon from '@mui/icons-material/Person';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -10,9 +9,12 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { logoutUser, getUserProfile, getProfileViewers, updateUserProfile } from "@/utils/api";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
+import { Formik, Form, Field } from "formik";
+import { updateNameSchema, UpdateEmailSchema, updatePasswordSchema } from "@/schemas/authSchema";
+import { useAppNavigation, ROUTES } from "@/hooks/useNavigation";
 
 function SettingsPage() {
-  const router = useRouter();
+  const { goToProfile } = useAppNavigation();
   const [activeTab, setActiveTab] = useState('account');
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
@@ -28,20 +30,8 @@ function SettingsPage() {
 
   // Modals state
   const [isNameModalOpen, setIsNameModalOpen] = useState(false);
-  const [nameFormData, setNameFormData] = useState({ name: '', location: '' });
-
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [emailFormData, setEmailFormData] = useState({ email: '' });
-
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [passwordFormData, setPasswordFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-
-  const [modalSubmitting, setModalSubmitting] = useState(false);
-  const [modalError, setModalError] = useState('');
 
   // Fetch current user details on mount
   useEffect(() => {
@@ -53,13 +43,6 @@ function SettingsPage() {
           const data = await res.json();
           if (data.user) {
             setCurrentUser(data.user);
-            setNameFormData({
-              name: data.user.name || '',
-              location: data.user.location || ''
-            });
-            setEmailFormData({
-              email: data.user.email || ''
-            });
           }
         }
       } catch (err) {
@@ -135,9 +118,9 @@ function SettingsPage() {
       localStorage.removeItem("user");
       localStorage.removeItem("profileComplete");
       showSuccessToast(TOAST_MESSAGES.LOGOUT_SUCCESS);
-      
+
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.href = ROUTES.LOGIN;
       }, 800);
     } catch (error) {
       console.error(error);
@@ -147,137 +130,10 @@ function SettingsPage() {
     }
   };
 
-  // 1. Name & Location Update Handlers
-  const openNameModal = () => {
-    setNameFormData({
-      name: currentUser?.name || '',
-      location: currentUser?.location || ''
-    });
-    setModalError('');
-    setIsNameModalOpen(true);
-  };
-
-  const handleUpdateName = async (e) => {
-    e.preventDefault();
-    const trimmedName = nameFormData.name.trim();
-    if (!trimmedName) {
-      setModalError("Name cannot be empty.");
-      return;
-    }
-
-    setModalSubmitting(true);
-    setModalError('');
-    try {
-      const res = await updateUserProfile({
-        name: trimmedName,
-        location: nameFormData.location.trim()
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setCurrentUser(prev => ({
-          ...prev,
-          name: data.user.name,
-          location: data.user.location
-        }));
-        showSuccessToast("Profile information updated successfully");
-        setIsNameModalOpen(false);
-      } else {
-        setModalError(data.message || "Failed to update profile information.");
-      }
-    } catch (err) {
-      setModalError("Network error occurred while updating profile.");
-    } finally {
-      setModalSubmitting(false);
-    }
-  };
-
-  // 2. Email Update Handlers
-  const openEmailModal = () => {
-    setEmailFormData({
-      email: currentUser?.email || ''
-    });
-    setModalError('');
-    setIsEmailModalOpen(true);
-  };
-
-  const handleUpdateEmail = async (e) => {
-    e.preventDefault();
-    const trimmedEmail = emailFormData.email.trim();
-    if (!trimmedEmail) {
-      setModalError("Email address cannot be empty.");
-      return;
-    }
-
-    setModalSubmitting(true);
-    setModalError('');
-    try {
-      const res = await updateUserProfile({
-        email: trimmedEmail
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setCurrentUser(prev => ({
-          ...prev,
-          email: data.user.email
-        }));
-        showSuccessToast("Email address updated successfully");
-        setIsEmailModalOpen(false);
-      } else {
-        setModalError(data.message || "Failed to update email.");
-      }
-    } catch (err) {
-      setModalError("Network error occurred while updating email.");
-    } finally {
-      setModalSubmitting(false);
-    }
-  };
-
-  // 3. Password Update Handlers
-  const openPasswordModal = () => {
-    setPasswordFormData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setModalError('');
-    setIsPasswordModalOpen(true);
-  };
-
-  const handleUpdatePassword = async (e) => {
-    e.preventDefault();
-    if (!passwordFormData.currentPassword) {
-      setModalError("Please enter your current password.");
-      return;
-    }
-    if (!passwordFormData.newPassword || passwordFormData.newPassword.length < 6) {
-      setModalError("New password must be at least 6 characters long.");
-      return;
-    }
-    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
-      setModalError("New passwords do not match.");
-      return;
-    }
-
-    setModalSubmitting(true);
-    setModalError('');
-    try {
-      const res = await updateUserProfile({
-        currentPassword: passwordFormData.currentPassword,
-        password: passwordFormData.newPassword
-      });
-      const data = await res.json();
-      if (res.ok) {
-        showSuccessToast("Password changed successfully");
-        setIsPasswordModalOpen(false);
-      } else {
-        setModalError(data.message || "Failed to change password.");
-      }
-    } catch (err) {
-      setModalError("Network error occurred while changing password.");
-    } finally {
-      setModalSubmitting(false);
-    }
-  };
+  // Modal Open Handlers
+  const openNameModal = () => setIsNameModalOpen(true);
+  const openEmailModal = () => setIsEmailModalOpen(true);
+  const openPasswordModal = () => setIsPasswordModalOpen(true);
 
   const tabs = [
     { id: 'account', label: 'Account preferences', icon: <PersonIcon className="w-5 h-5 mr-3" /> },
@@ -302,11 +158,10 @@ function SettingsPage() {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`flex items-center px-4 py-4 text-left transition-colors duration-150 ${
-                      activeTab == tab.id
+                    className={`flex items-center px-4 py-4 text-left transition-colors duration-150 ${activeTab == tab.id
                         ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600'
                         : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
-                    }`}
+                      }`}
                   >
                     {tab.icon}
                     <span className="font-medium text-sm">{tab.label}</span>
@@ -331,13 +186,13 @@ function SettingsPage() {
               {activeTab === 'account' && (
                 <div className="animate-fadeIn">
                   <h3 className="text-2xl font-semibold text-gray-900 mb-6">Account preferences</h3>
-                  
+
                   <div className="space-y-6">
                     <div className="border-b border-gray-200 pb-6">
                       <h4 className="text-lg font-medium text-gray-800 mb-4">Profile information</h4>
                       <div className="flex justify-between items-center group hover:bg-gray-50 p-3 -mx-2 rounded-lg transition-colors">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">Name, location, and industry</p>
+                          <p className="text-sm font-semibold text-gray-900">Name and location</p>
                           <p className="text-sm text-gray-600 mt-0.5">
                             {userLoading ? (
                               <span className="text-gray-400">Loading your profile...</span>
@@ -410,13 +265,13 @@ function SettingsPage() {
                         </button>
                       </div>
 
-                      <div className="flex justify-between items-center group cursor-pointer mb-2 hover:bg-gray-50 p-2 -mx-2 rounded-md transition-colors">
+                      {/*<div className="flex justify-between items-center group cursor-pointer mb-2 hover:bg-gray-50 p-2 -mx-2 rounded-md transition-colors">
                         <div>
                           <p className="text-sm font-medium text-gray-900">Phone numbers</p>
                           <p className="text-sm text-gray-500">Add a phone number to help keep your account secure</p>
                         </div>
                         <button className="text-gray-400 group-hover:text-blue-600 font-medium text-sm transition-colors">Change</button>
-                      </div>
+                      </div>*/}
 
                       <div className="flex justify-between items-center group hover:bg-gray-50 p-3 -mx-2 rounded-lg transition-colors">
                         <div>
@@ -439,7 +294,7 @@ function SettingsPage() {
                 <div className="animate-fadeIn">
                   <h3 className="text-2xl font-semibold text-gray-900 mb-2">Visibility</h3>
                   <p className="text-gray-600 mb-6">Control who can see your profile and network.</p>
-                  
+
                   <div className="space-y-6">
                     <div className="border-b border-gray-200 pb-6">
                       <h4 className="text-lg font-medium text-gray-800 mb-4">Visibility of your profile & network</h4>
@@ -503,7 +358,7 @@ function SettingsPage() {
                             {viewers.map((viewer) => (
                               <div
                                 key={viewer.view_id || `${viewer.viewer_id}-${viewer.viewed_at}`}
-                                onClick={() => router.push(`/profile/${viewer.viewer_id}`)}
+                                onClick={() => goToProfile(viewer.viewer_id)}
                                 className="flex items-center justify-between gap-3 p-3 bg-white hover:bg-blue-50/50 rounded-lg border border-gray-200 hover:border-blue-200 transition cursor-pointer group shadow-sm"
                               >
                                 <div className="flex items-center gap-3 min-w-0">
@@ -556,20 +411,20 @@ function SettingsPage() {
                   <h3 className="text-2xl font-semibold text-gray-900 mb-6">Notifications</h3>
                   <p className="text-gray-600 mb-6">Choose how and when you want to be notified.</p>
                   <div className="space-y-4">
-                     <div className="flex justify-between items-center p-4 border border-gray-200 rounded-md hover:shadow-sm transition-shadow cursor-pointer bg-gray-50">
-                        <div>
-                          <p className="font-medium text-gray-800">In-app notifications</p>
-                          <p className="text-sm text-gray-500 mt-1">Receive alerts in the notification tab for new connections, messages, and posts.</p>
-                        </div>
-                        <span className="text-sm text-blue-600 font-semibold px-3 py-1 bg-blue-100 rounded-full shrink-0 ml-4">On</span>
-                     </div>
-                     <div className="flex justify-between items-center p-4 border border-gray-200 rounded-md hover:shadow-sm transition-shadow cursor-pointer bg-gray-50">
-                        <div>
-                          <p className="font-medium text-gray-800">Message alerts</p>
-                          <p className="text-sm text-gray-500 mt-1">Show a badge when you receive a new direct message from a connection.</p>
-                        </div>
-                        <span className="text-sm text-blue-600 font-semibold px-3 py-1 bg-blue-100 rounded-full shrink-0 ml-4">On</span>
-                     </div>
+                    <div className="flex justify-between items-center p-4 border border-gray-200 rounded-md hover:shadow-sm transition-shadow cursor-pointer bg-gray-50">
+                      <div>
+                        <p className="font-medium text-gray-800">In-app notifications</p>
+                        <p className="text-sm text-gray-500 mt-1">Receive alerts in the notification tab for new connections, messages, and posts.</p>
+                      </div>
+                      <span className="text-sm text-blue-600 font-semibold px-3 py-1 bg-blue-100 rounded-full shrink-0 ml-4">On</span>
+                    </div>
+                    <div className="flex justify-between items-center p-4 border border-gray-200 rounded-md hover:shadow-sm transition-shadow cursor-pointer bg-gray-50">
+                      <div>
+                        <p className="font-medium text-gray-800">Message alerts</p>
+                        <p className="text-sm text-gray-500 mt-1">Show a badge when you receive a new direct message from a connection.</p>
+                      </div>
+                      <span className="text-sm text-blue-600 font-semibold px-3 py-1 bg-blue-100 rounded-full shrink-0 ml-4">On</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -585,68 +440,123 @@ function SettingsPage() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
               <h2 className="text-lg font-semibold text-gray-900">Edit Name & Location</h2>
-              <button 
+              <button
                 onClick={() => setIsNameModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 text-lg transition-colors"
               >
                 ✕
               </button>
             </div>
-            
-            <form onSubmit={handleUpdateName} className="p-6">
-              {modalError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
-                  {modalError}
-                </div>
+
+            <Formik
+              initialValues={{
+                name: currentUser?.name || '',
+                location: currentUser?.location || ''
+              }}
+              validationSchema={updateNameSchema}
+              enableReinitialize
+              onSubmit={async (values, { setSubmitting, setStatus, setFieldError }) => {
+                setStatus('');
+                const trimmedName = values.name.trim();
+                const trimmedLocation = (values.location || '').trim();
+
+                if (
+                  trimmedName === (currentUser?.name || '').trim() &&
+                  trimmedLocation === (currentUser?.location || '').trim()
+                ) {
+                  setFieldError("name", "New name cannot be the same as current name");
+                  setFieldError("location", "New location cannot be the same as current location");
+                  showErrorToast("No changes detected to update.");
+                  setSubmitting(false);
+                  return;
+                }
+
+                try {
+                  const res = await updateUserProfile({
+                    name: trimmedName,
+                    location: trimmedLocation
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    setCurrentUser(prev => ({
+                      ...prev,
+                      name: data.user.name,
+                      location: data.user.location
+                    }));
+                    showSuccessToast("Profile information updated successfully");
+                    setIsNameModalOpen(false);
+                  } else {
+                    const errorMsg = data.message || "Failed to update profile information.";
+                    setStatus(errorMsg);
+                    showErrorToast(errorMsg);
+                  }
+                } catch (err) {
+                  const errorMsg = "Network error occurred while updating profile.";
+                  setStatus(errorMsg);
+                  showErrorToast(errorMsg);
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {({ errors, touched, isSubmitting, status, submitCount }) => (
+                <Form className="p-6">
+                  {status && (
+                    <p className="text-red-500 text-xs mb-3">{status}</p>
+                  )}
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <Field
+                        type="text"
+                        name="name"
+                        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900"
+                        placeholder="Enter your name"
+                      />
+                      {errors.name && (touched.name || submitCount > 0) && (
+                        <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Location<span className="text-red-500">*</span>
+                      </label>
+                      <Field
+                        type="text"
+                        name="location"
+                        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900"
+                        placeholder="e.g. Mumbai, India"
+                      />
+                      {errors.location && (touched.location || submitCount > 0) && (
+                        <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsNameModalOpen(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Saving..." : "Save changes"}
+                    </button>
+                  </div>
+                </Form>
               )}
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-                    Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={nameFormData.name}
-                    onChange={(e) => setNameFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="Enter your name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={nameFormData.location}
-                    onChange={(e) => setNameFormData(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="e.g. San Francisco, CA or London, UK"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setIsNameModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
-                  disabled={modalSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={modalSubmitting}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition disabled:opacity-50"
-                >
-                  {modalSubmitting ? "Saving..." : "Save changes"}
-                </button>
-              </div>
-            </form>
+            </Formik>
           </div>
         </div>
       )}
@@ -657,58 +567,104 @@ function SettingsPage() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
               <h2 className="text-lg font-semibold text-gray-900">Change Email Address</h2>
-              <button 
+              <button
                 onClick={() => setIsEmailModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 text-lg transition-colors"
               >
                 ✕
               </button>
             </div>
-            
-            <form onSubmit={handleUpdateEmail} className="p-6">
-              {modalError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
-                  {modalError}
-                </div>
+
+            <Formik
+              initialValues={{
+                email: currentUser?.email || ''
+              }}
+              validationSchema={UpdateEmailSchema(currentUser?.email)}
+              enableReinitialize
+              onSubmit={async (values, { setSubmitting, setStatus, setFieldError }) => {
+                setStatus('');
+                const trimmedEmail = values.email.trim();
+
+                if (currentUser?.email && trimmedEmail.toLowerCase() === currentUser.email.toLowerCase()) {
+                  const errorMsg = "New email cannot be the same as your current email.";
+                  setFieldError("email", errorMsg);
+                  showErrorToast(errorMsg);
+                  setSubmitting(false);
+                  return;
+                }
+
+                try {
+                  const res = await updateUserProfile({
+                    email: trimmedEmail
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    setCurrentUser(prev => ({
+                      ...prev,
+                      email: data.user.email
+                    }));
+                    showSuccessToast("Email address updated successfully");
+                    setIsEmailModalOpen(false);
+                  } else {
+                    const errorMsg = data.message || "Failed to update email.";
+                    setStatus(errorMsg);
+                    showErrorToast(errorMsg);
+                  }
+                } catch (err) {
+                  const errorMsg = "Network error occurred while updating email.";
+                  setStatus(errorMsg);
+                  showErrorToast(errorMsg);
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {({ errors, touched, isSubmitting, status, submitCount }) => (
+                <Form className="p-6">
+                  {status && (
+                    <p className="text-red-500 text-xs mb-3">{status}</p>
+                  )}
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        New Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <Field
+                        type="email"
+                        name="email"
+                        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900"
+                        placeholder="Enter new email address"
+                      />
+                      {errors.email && (touched.email || submitCount > 0) && (
+                        <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1.5">
+                        This will become the primary email you use to sign in.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsEmailModalOpen(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Updating..." : "Update email"}
+                    </button>
+                  </div>
+                </Form>
               )}
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-                    New Email Address <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={emailFormData.email}
-                    onChange={(e) => setEmailFormData({ email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="Enter new email address"
-                  />
-                  <p className="text-xs text-gray-500 mt-1.5">
-                    This will become the primary email you use to sign in.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setIsEmailModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
-                  disabled={modalSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={modalSubmitting}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition disabled:opacity-50"
-                >
-                  {modalSubmitting ? "Updating..." : "Update email"}
-                </button>
-              </div>
-            </form>
+            </Formik>
           </div>
         </div>
       )}
@@ -716,88 +672,130 @@ function SettingsPage() {
       {/* Modal 3: Change Password */}
       {isPasswordModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-xl w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
               <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
-              <button 
+              <button
                 onClick={() => setIsPasswordModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-lg transition-colors"
+                className="text-gray-400 hover:text-gray-600 text-lg"
               >
                 ✕
               </button>
             </div>
-            
-            <form onSubmit={handleUpdatePassword} className="p-6">
-              {modalError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
-                  {modalError}
-                </div>
+
+            <Formik
+              initialValues={{
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+              }}
+              validationSchema={updatePasswordSchema}
+              onSubmit={async (values, { setSubmitting, setStatus, setFieldError }) => {
+                setStatus('');
+                if (values.currentPassword === values.newPassword) {
+                  const errorMsg = "New password cannot be the same as current password";
+                  setFieldError("newPassword", errorMsg);
+                  showErrorToast(errorMsg);
+                  setSubmitting(false);
+                  return;
+                }
+
+                try {
+                  const res = await updateUserProfile({
+                    currentPassword: values.currentPassword,
+                    password: values.newPassword
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    showSuccessToast("Password changed successfully");
+                    setIsPasswordModalOpen(false);
+                  } else {
+                    const errorMsg = data.message || "Failed to change password.";
+                    setStatus(errorMsg);
+                    showErrorToast(errorMsg);
+                  }
+                } catch (err) {
+                  const errorMsg = "Network error occurred while changing password.";
+                  setStatus(errorMsg);
+                  showErrorToast(errorMsg);
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {({ errors, touched, isSubmitting, status, submitCount }) => (
+                <Form className="p-6">
+                  {status && (
+                    <p className="text-red-500 text-xs mb-3">{status}</p>
+                  )}
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Current Password <span className="text-red-500">*</span>
+                      </label>
+                      <Field
+                        type="password"
+                        name="currentPassword"
+                        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900"
+                        placeholder="Enter current password"
+                      />
+                      {errors.currentPassword && touched.currentPassword && (
+                        <p className="text-red-500 text-xs mt-1">{errors.currentPassword}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        New Password <span className="text-red-500">*</span>
+                      </label>
+                      <Field
+                        type="password"
+                        name="newPassword"
+                        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900"
+                        placeholder="Minimum 6 characters"
+                      />
+                      {errors.newPassword && touched.newPassword && (
+                        <p className="text-red-500 text-xs mt-1">{errors.newPassword}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Retype New Password <span className="text-red-500">*</span>
+                      </label>
+                      <Field
+                        type="password"
+                        name="confirmPassword"
+                        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900"
+                        placeholder="Confirm new password"
+                      />
+                      {errors.confirmPassword && touched.confirmPassword && (
+                        <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsPasswordModalOpen(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Updating..." : "Update password"}
+                    </button>
+                  </div>
+                </Form>
               )}
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-                    Current Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={passwordFormData.currentPassword}
-                    onChange={(e) => setPasswordFormData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="Enter current password"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-                    New Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={passwordFormData.newPassword}
-                    onChange={(e) => setPasswordFormData(prev => ({ ...prev, newPassword: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="Minimum 6 characters"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-                    Retype New Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={passwordFormData.confirmPassword}
-                    onChange={(e) => setPasswordFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="Confirm new password"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setIsPasswordModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
-                  disabled={modalSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={modalSubmitting}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition disabled:opacity-50"
-                >
-                  {modalSubmitting ? "Updating..." : "Update password"}
-                </button>
-              </div>
-            </form>
+            </Formik>
           </div>
         </div>
       )}
@@ -808,19 +806,19 @@ function SettingsPage() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden ">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">Logout</h2>
-              <button 
+              <button
                 onClick={() => setIsLogoutModalOpen(false)}
                 className="text-red-500 hover:text-red-700 transition-colors"
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="p-6 md:p-8">
               <p className="text-lg text-center text-black font-medium mb-8 pb-6">
-              Are you sure you want to logout?
+                Are you sure you want to logout?
               </p>
-              
+
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => setIsLogoutModalOpen(false)}

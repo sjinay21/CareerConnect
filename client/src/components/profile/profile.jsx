@@ -51,6 +51,7 @@ import Card from "@/components/shared/card";
 import Buttonvariants from "@/components/ui/button";
 import Link from "next/link";
 import Timer from "@/utils/timer";
+import { ROUTES } from "@/hooks/useNavigation";
 
 export default function Profile({
   user,
@@ -68,7 +69,7 @@ export default function Profile({
     <Card padding={0}>
       <div className="relative h-[110px]">
         <Link
-          href={`/profile/${user?.id}`}
+          href={ROUTES.PROFILE(user?.id)}
           className="block relative w-full h-[80px] rounded-md"
         >
           <img
@@ -78,7 +79,7 @@ export default function Profile({
           />
         </Link>
         <Link
-          href={`/profile/${user?.id}`}
+          href={ROUTES.PROFILE(user?.id)}
           className="absolute top-10 left-6 z-10 block"
         >
           <img
@@ -93,7 +94,7 @@ export default function Profile({
       </div>
       <div className="p-5 mt-3">
         <Link
-          href={`/profile/${user?.id}`}
+          href={ROUTES.PROFILE(user?.id)}
           className="text-xl font-semibold hover:underline cursor-pointer block"
         >
           {user?.name}

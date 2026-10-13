@@ -12,11 +12,11 @@ import {
   updateConnectionStatus,
 } from "@/utils/api";
 import { useProfile } from "@/hooks/useProfile";
-import { useRouter } from "next/navigation";
+import { useAppNavigation } from "@/hooks/useNavigation";
 
 function MyNetwork() {
   const { profile } = useProfile();
-  const router = useRouter();
+  const { goToMessages } = useAppNavigation();
   const [searchedUsers, setSearchedUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [connections, setConnections] = useState({
@@ -68,7 +68,7 @@ function MyNetwork() {
     try {
       const response = await createOrGetConversation(userId);
       if (response.ok) {
-        router.push("/messages");
+        goToMessages();
       }
     } catch (error) {
       console.error("Error creating/getting conversation", error);

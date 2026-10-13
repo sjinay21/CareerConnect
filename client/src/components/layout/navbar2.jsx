@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 import { logoutUser } from "@/utils/api";
-import { ROUTES } from "@/hooks/useNavigation";
+import { ROUTES, useAppNavigation } from "@/hooks/useNavigation";
 
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -21,6 +21,7 @@ import { useProfile } from "@/hooks/useProfile";
 
 export default function Navbar2() {
   const { profile } = useProfile();
+  const { goToFeeds, goToJobs, goToProfile, goToSettings, goToPlan, goToAdminDashboard } = useAppNavigation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMeDropdownOpen, setIsMeDropdownOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -56,14 +57,16 @@ export default function Navbar2() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center h-[52px]">
 
         <div className="flex items-center flex-1 md:flex-none">
-          <h3 className="text-blue-600 font-bold text-xl md:text-3xl hidden sm:block">
-            Linked
-          </h3>
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10"
-            alt="Linkedlogo"
-            className="w-[34px] h-[34px] rounded cursor-pointer mx-2 sm:mx-0"
-          />
+          <Link href={ROUTES.FEEDS} className="flex items-center cursor-pointer">
+            <h3 className="text-blue-600 font-bold text-xl md:text-3xl hidden sm:block">
+              Linked
+            </h3>
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEG3aEUmQKntiQbFep_sRg_0Wz2CzKQAaNAG5V1KcN5g&s=10"
+              alt="Linkedlogo"
+              className="w-[34px] h-[34px] rounded cursor-pointer mx-2 sm:mx-0"
+            />
+          </Link>
 
           <div className="ml-2 md:ml-4 flex-1 max-w-[200px] md:max-w-none">
             <Search limit={5} />
@@ -103,33 +106,71 @@ export default function Navbar2() {
                       <div className="text-sm text-gray-600 line-clamp-2">{profile?.summary || "Software Engineer"}</div>
                     </div>
                   </div>
-                  <Link href={`/profile/${profile?.id}`} onClick={() => setIsMeDropdownOpen(false)}>
-                    <div className="mt-3 block w-full text-center py-1 border border-blue-600 text-blue-600 rounded-full font-semibold hover:bg-blue-50 transition-colors">
-                      View profile
-                    </div>
-                  </Link>
+                  <div
+                    onClick={() => {
+                      setIsMeDropdownOpen(false);
+                      goToProfile(profile?.id);
+                    }}
+                    className="mt-3 block w-full text-center py-1 border border-blue-600 text-blue-600 rounded-full font-semibold hover:bg-blue-50 transition-colors cursor-pointer"
+                  >
+                    View profile
+                  </div>
                 </div>
 
                 <div className="px-4 py-3 border-b border-gray-200">
                   <div className="font-semibold text-gray-900 mb-2">Account</div>
-                  <Link href="/plan" onClick={() => setIsMeDropdownOpen(false)} className="block text-sm text-[#915907] hover:underline mb-2 font-semibold">
+                  <div
+                    onClick={() => {
+                      setIsMeDropdownOpen(false);
+                      goToPlan();
+                    }}
+                    className="block text-sm text-[#915907] hover:underline mb-2 font-semibold cursor-pointer"
+                  >
                     Try 1 month of Premium for ₹0
-                  </Link>
-                  <Link href="/settings" onClick={() => setIsMeDropdownOpen(false)} className="block text-sm text-gray-600 hover:underline mb-2 py-1">
+                  </div>
+                  <div
+                    onClick={() => {
+                      setIsMeDropdownOpen(false);
+                      goToSettings();
+                    }}
+                    className="block text-sm text-gray-600 hover:underline mb-2 py-1 cursor-pointer"
+                  >
                     Settings & Privacy
-                  </Link>
+                  </div>
                   <div className="block text-sm text-gray-600 hover:underline mb-2 py-1 cursor-pointer">Help</div>
                   <div className="block text-sm text-gray-600 hover:underline py-1 cursor-pointer">Language</div>
                 </div>
 
                 <div className="px-4 py-3 border-b border-gray-200">
                   <div className="font-semibold text-gray-900 mb-2">Manage</div>
-                  <div className="block text-sm text-gray-600 hover:underline mb-2 py-1 cursor-pointer">Posts & Activity</div>
-                  <div className="block text-sm text-gray-600 hover:underline py-1 cursor-pointer">Job Posting Account</div>
+                  <div
+                    onClick={() => {
+                      setIsMeDropdownOpen(false);
+                      goToFeeds();
+                    }}
+                    className="block text-sm text-gray-600 hover:underline mb-2 py-1 cursor-pointer"
+                  >
+                    Posts & Activity
+                  </div>
+                  <div
+                    onClick={() => {
+                      setIsMeDropdownOpen(false);
+                      goToJobs();
+                    }}
+                    className="block text-sm text-gray-600 hover:underline py-1 cursor-pointer"
+                  >
+                    Job Posting Account
+                  </div>
                   {profile?.role === 'admin' && (
-                    <Link href={ROUTES.ADMIN_DASHBOARD} onClick={() => setIsMeDropdownOpen(false)} className="block text-sm text-blue-600 hover:underline py-1 mt-2 font-semibold">
+                    <div
+                      onClick={() => {
+                        setIsMeDropdownOpen(false);
+                        goToAdminDashboard();
+                      }}
+                      className="block text-sm text-blue-600 hover:underline py-1 mt-2 font-semibold cursor-pointer"
+                    >
                       Admin Dashboard
-                    </Link>
+                    </div>
                   )}
                 </div>
 
@@ -167,7 +208,7 @@ export default function Navbar2() {
               <img src={profile?.profile_picture_url || "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"} className="w-10 h-10 rounded-full object-cover shrink-0" />
               <div>
                 <div className="font-semibold">{profile?.name || "User"}</div>
-                <Link href={`/profile/${profile?.id}`} onClick={() => setIsMobileMenuOpen(false)} className="text-sm text-blue-600 hover:underline">View profile</Link>
+                <div onClick={() => { setIsMobileMenuOpen(false); goToProfile(profile?.id); }} className="text-sm text-blue-600 hover:underline cursor-pointer">View profile</div>
               </div>
             </div>
             {mainLinks.map((link) => (
@@ -180,28 +221,52 @@ export default function Navbar2() {
                 {link.icon} {link.label}
               </Link>
             ))}
-            <Link
-              href="/settings"
-              className="text-gray-600 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-md font-medium block"
-              onClick={() => setIsMobileMenuOpen(false)}
+            <div
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                goToSettings();
+              }}
+              className="text-gray-600 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-md font-medium block cursor-pointer"
             >
               Settings & Privacy
-            </Link>
-            <Link
-              href={ROUTES.PLAN}
-              className="text-[#915907] hover:bg-orange-50 px-3 py-2 rounded-md font-medium block"
-              onClick={() => setIsMobileMenuOpen(false)}
+            </div>
+            <div
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                goToFeeds();
+              }}
+              className="text-gray-600 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-md font-medium block cursor-pointer"
+            >
+              Posts & Activity
+            </div>
+            <div
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                goToJobs();
+              }}
+              className="text-gray-600 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-md font-medium block cursor-pointer"
+            >
+              Job Posting Account
+            </div>
+            <div
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                goToPlan();
+              }}
+              className="text-[#915907] hover:bg-orange-50 px-3 py-2 rounded-md font-medium block cursor-pointer"
             >
               Try 1 month of Premium for ₹0
-            </Link>
+            </div>
             {profile?.role == 'admin' && (
-              <Link
-                href={ROUTES.ADMIN_DASHBOARD}
-                className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md font-medium block"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <div
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  goToAdminDashboard();
+                }}
+                className="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md font-medium block cursor-pointer"
               >
                 Admin Dashboard
-              </Link>
+              </div>
             )}
             <button
               onClick={() => {
