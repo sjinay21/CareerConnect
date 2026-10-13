@@ -65,6 +65,12 @@ export const getUserById = async (userId) => {
   });
 };
 
+export const getProfileViewers = async () => {
+  return await customFetch("/users/profile/viewers", {
+    method: "GET",
+  });
+};
+
 export const updateUserProfile = async (data) => {
   const isForm = Boolean(data.append);
 

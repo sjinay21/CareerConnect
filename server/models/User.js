@@ -20,30 +20,25 @@ async function create(userData) {
 }
 
 async function updateProfile(id, profileData) {
-  const { name, about, summary, location, skills, profile_picture_url, banner_url } = profileData;
-  
-  let setClauses = ["name = $1", "about = $2", "summary = $3", "location = $4", "skills = $5"];
-  let params = [name, about || null, summary || null, location || null, skills || null];
-
-  if (profile_picture_url) {
-    params.push(profile_picture_url);
-    setClauses.push(`profile_picture_url = $${params.length}`);
+  const keys = Object.keys(profileData);
+  if (keys.length === 0) {
+    return await findById(id);
   }
 
-  if (banner_url) {
-    params.push(banner_url);
-    setClauses.push(`banner_url = $${params.length}`);
-  }
+  const setClauses = keys.map((key, index) => `${key} = $${index + 1}`);
+  const values = keys.map((key) => profileData[key]);
 
-  params.push(id);
-  const idParamIndex = params.length;
+  values.push(id);
+  const idIndex = values.length;
 
-  const query = `UPDATE users SET ${setClauses.join(", ")} 
-    WHERE id = $${idParamIndex} 
-    RETURNING id, name, email, about, summary, location, skills, profile_picture_url, banner_url
+  const query = `
+    UPDATE users 
+    SET ${setClauses.join(", ")} 
+    WHERE id = $${idIndex} 
+    RETURNING id, name, email, about, summary, location, skills, profile_picture_url, banner_url, role
   `;
 
-  const result = await pool.query(query, params);
+  const result = await pool.query(query, values);
   return result.rows[0];
 }
 

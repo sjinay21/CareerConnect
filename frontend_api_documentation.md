@@ -1,19 +1,82 @@
 # Frontend API Documentation
 
-This table documents all the API endpoints defined in your centralized `client/src/utils/api.js` file, detailing exactly where they are used in your React components and what their core purpose is.
+This document provides a comprehensive, centralized reference for all API endpoints in the application. It details how the Next.js frontend (`client/src/utils/api.js` and pages/components) communicates with the Express / PostgreSQL backend (`server/routes/`).
 
-| API Function          | Backend Endpoint  | HTTP Method | Called In (Frontend File)                                                             | Purpose & Why It's Needed                                                                                                                                              |
-| :-------------------- | :---------------- | :---------- | :------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`loginUser`**       | `/login`          | `POST`      | `client/src/app/login/page.jsx`                                                       | Authenticates a user by sending their email/password. It sets an HTTP-only JWT cookie in the browser to keep them logged in across sessions.                           |
-| **`registerUser`**    | `/register`       | `POST`      | `client/src/app/register/page.jsx`                                                    | Creates a brand new user account in your PostgreSQL database and automatically logs them in.                                                                           |
-| **`logoutUser`**      | `/logout`         | `POST`      | *Navigation / Profile components*                                                     | Clears the JWT cookie from the browser and destroys the active session, effectively logging the user out.                                                              |
-| **`getUserProfile`**  | `/users/profile`  | `GET`       | `client/src/hooks/useProfile.jsx`                                                     | Fetches the current logged-in user's data (name, summary, skills, location). Used globally via the `useProfile` hook so any component can render the user's name.      |
-| **`updateUserProfile`**| `/users/update`  | `PUT`       | `client/src/app/profile/[id]/page.jsx`<br>`client/src/app/onboarding/page.jsx`        | Saves changes made to the user's profile. Called when a user completes initial onboarding or uses the "Edit Profile" modal on their profile page.                      |
-| **`getPosts`**        | `/posts/getPosts` | `GET`       | `client/src/app/feeds/page.jsx`                                                       | Retrieves the list of posts for the global feed. Called automatically when the component mounts, powering the main feed page.                                          |
-| **`createPost`**      | `/posts/create`   | `POST`      | `client/src/app/feeds/page.jsx`                                                       | Takes a `FormData` object (containing text and optionally an image file), uploads the image to Cloudinary, and saves the new post to the database.                     |
-| **`updatePost`**      | `/posts/update`   | `PUT`       | `client/src/app/feeds/page.jsx`<br>`client/src/components/feed/post.jsx`              | Used when a user edits their post (e.g. changing text or image). This sends the updated `FormData` to the server to overwrite the existing post data.                  |
-| **`deletePost`**      | `/posts/delete`   | `DELETE`    | `client/src/app/feeds/page.jsx`<br>`client/src/components/feed/post.jsx`              | Used when a user clicks Delete on their post and confirms it via the custom toast. It permanently removes the post from the database.                                  |
-| **`islikePost`**      | `/like/islike`    | `POST`      | `client/src/components/shared/socialactions.jsx`                                      | Toggles the like status of a post. It sends the `postId` to the server which either adds a like or removes a like depending on the user's current status.              |
+---
+
+## 📊 Complete API Directory
+
+| API Function | Backend Endpoint | HTTP Method | Called In (Frontend File) | Purpose & Why It's Needed |
+| :--- | :--- | :--- | :--- | :--- |
+| **`loginUser`** | `/login` | `POST` | `client/src/app/login/page.jsx` | Authenticates a user by sending email and password. It sets an HTTP-only JWT cookie in the browser to maintain authentication across sessions. |
+| **`registerUser`** | `/register` | `POST` | `client/src/app/register/page.jsx` | Creates a brand new user account in the PostgreSQL database and automatically prepares them for login. |
+| **`logoutUser`** | `/logout` | `POST` | `client/src/components/layout/navbar2.jsx`<br>`client/src/app/settings/page.jsx`<br>`client/src/app/profile/[id]/page.jsx`<br>`client/src/app/onboarding/page.jsx` | Clears the JWT auth cookie from the browser, deletes user cache from `localStorage`, and redirects to login. |
+| **`getUserProfile`** | `/users/profile` | `GET` | `client/src/hooks/useProfile.jsx`<br>`client/src/app/settings/page.jsx`<br>`client/src/app/messages/page.jsx`<br>`client/src/app/login/page.jsx` | Fetches the current authenticated user's complete profile details (name, summary, skills, location, role, profile picture, banner, and total profile views). |
+| **`getUserById`** | `/users/:id` | `GET` | `client/src/app/profile/[id]/page.jsx` | Fetches public profile data of any user by ID. If visited by another authenticated user, it automatically records a profile view. |
+| **`getProfileViewers`** | `/users/profile/viewers` | `GET` | `client/src/app/settings/page.jsx` | Fetches the history of users who visited the logged-in user's profile, including viewer name, picture, and view timestamp for the Visibility settings tab. |
+| **`updateUserProfile`** | `/users/update` | `PUT` | `client/src/app/profile/[id]/page.jsx`<br>`client/src/app/onboarding/page.jsx`<br>`client/src/app/settings/page.jsx` | Updates user profile and account credentials (name, email, password with verification, headline, bio, location, skills) and uploads avatar/banner images via multipart or JSON. |
+| **`getPosts`** | `/posts/getPosts` | `GET` | `client/src/app/feeds/page.jsx`<br>`client/src/app/post/[id]/page.jsx`<br>`client/src/app/profile/[id]/page.jsx` | Retrieves feed posts including author details, likes count, comments count, and whether the logged-in user liked each post. |
+| **`createPost`** | `/posts/create` | `POST` | `client/src/app/feeds/page.jsx`<br>`client/src/app/article/create/page.jsx` | Creates a new post with text content and optional media upload (Cloudinary) and broadcasts it to feeds. |
+| **`updatePost`** | `/posts/update` | `PUT` | `client/src/app/feeds/page.jsx`<br>`client/src/app/post/[id]/page.jsx`<br>`client/src/app/profile/[id]/page.jsx` | Updates post caption or content for a post owned by the logged-in user. |
+| **`deletePost`** | `/posts/delete` | `DELETE` | `client/src/app/feeds/page.jsx`<br>`client/src/app/post/[id]/page.jsx`<br>`client/src/app/profile/[id]/page.jsx` | Deletes a post owned by the logged-in user from the database. |
+| **`islikePost`** | `/like/islike` | `POST` | `client/src/components/shared/socialactions.jsx` | Toggles a like on a post (creates like if unliked, removes like if already liked) and returns updated like count. |
+| **`getPostLikes`** | `/like/:postId/likes` | `GET` | `client/src/components/shared/socialactions.jsx` | Fetches the list of all users who liked a specific post, displaying their names, summaries, and avatars in the reactions modal. |
+| **`getComments`** | `/comments/getcomments?postId=...` | `GET` | `client/src/components/shared/socialactions.jsx` | Fetches top-level comments and replies for a specific post to render underneath the post. |
+| **`addComment`** | `/comments/addcomments` | `POST` | `client/src/components/shared/socialactions.jsx` | Posts a new top-level comment or replies to an existing parent comment on a post. |
+| **`getExperiences`** | `/experiences/getexperiences?userId=...` | `GET` | `client/src/components/profile/experience.jsx`<br>`client/src/app/profile/[id]/page.jsx` | Fetches career and educational experience records for the logged-in user or a visited profile. |
+| **`createExperience`** | `/experiences/addexperience` | `POST` | `client/src/components/profile/experience.jsx` | Adds a new job/experience entry with company, role, dates, location, and description. |
+| **`updateExperience`** | `/experiences/updateexperience/:id` | `PUT` | `client/src/components/profile/experience.jsx` | Updates an existing experience record by ID. |
+| **`deleteExperience`** | `/experiences/deleteexperience/:id` | `DELETE` | `client/src/components/profile/experience.jsx` | Deletes an experience entry by ID from the user's profile. |
+| **`searchUsers`** | `/users?search=...&limit=...&offset=...` | `GET` | `client/src/components/shared/search.jsx`<br>`client/src/app/mynetwork/page.jsx` | Searches registered users by name or keyword with pagination support for discovery and networking. |
+| **`getAllUsers`** | `/users/all` | `GET` | `client/src/app/mynetwork/page.jsx` | Fetches list of all platform users to suggest network connections and contacts. |
+| **`sendConnectionRequest`** | `/connections/request/:userId` | `POST` | `client/src/app/mynetwork/page.jsx` | Sends a connection invitation request to another user by user ID. |
+| **`updateConnectionStatus`** | `/connections/:connectionId/status` | `PUT` | `client/src/app/mynetwork/page.jsx`<br>`client/src/app/notification/page.jsx` | Accepts, rejects, or updates the status of an incoming connection request. |
+| **`getConnections`** | `/connections?userId=...` | `GET` | `client/src/app/mynetwork/page.jsx`<br>`client/src/app/notification/page.jsx`<br>`client/src/app/profile/[id]/page.jsx` | Fetches received requests, sent requests, and accepted connections/friends for networking. |
+| **`createOrGetConversation`** | `/conversations` | `POST` | `client/src/app/mynetwork/page.jsx`<br>`client/src/app/profile/[id]/page.jsx` | Initiates or retrieves an existing direct 1-on-1 conversation channel between two users. |
+| **`getUserConversationsList`** | `/conversations/Userlist?limit=...&offset=...` | `GET` | `client/src/app/messages/page.jsx` | Fetches the authenticated user's active conversation threads, unread counts, and last messages. |
+| **`getConversationMembers`** | `/conversations/:conversationId/members` | `GET` | `client/src/utils/api.js` *(Conversation utils)* | Fetches participant members belonging to a specific conversation room. |
+| **`getConversationMessages`** | `/messages/:conversationId?limit=...&offset=...` | `GET` | `client/src/app/messages/page.jsx` | Fetches paginated message history for a conversation thread. |
+| **`sendMessage`** | `/messages/send` | `POST` | `client/src/app/messages/page.jsx`<br>`client/src/utils/api.js` | Sends a new text message to a conversation via REST API (complements real-time Socket.IO emission). |
+| **`getAllJobs`** | `/jobs` | `GET` | `client/src/app/jobs/page.jsx`<br>`client/src/app/jobs/[id]/page.jsx` | Fetches all published job opportunities with filters, company info, salary ranges, and applicant counts. |
+| **`getJobById`** | `/jobs/:id` | `GET` | `client/src/app/jobs/[id]/page.jsx` | Fetches detailed information for a specific job listing by job ID. |
+| **`createJob`** | `/jobs` | `POST` | `client/src/app/job_create/page.jsx` | Publishes a new job vacancy with role, company name, location, salary range, employment type, and applicant limits. |
+| **`deleteJob`** | `/jobs/:id` | `DELETE` | `client/src/app/jobs/page.jsx`<br>`client/src/app/jobs/[id]/page.jsx` | Deletes a job posting authored by the logged-in user. |
+| **`applyToJob`** | `/jobs/:id/apply` | `POST` | `client/src/app/jobs/[id]/page.jsx` | Submits an application for the authenticated user to a job posting, validating against duplicate applications and applicant limits. |
+| **`getJobApplicants`** | `/jobs/jobtracker/applicants` | `GET` | `client/src/app/job_tracker/page.jsx` | Fetches list of applicants who submitted applications to jobs created by the authenticated user. |
+| **`getActivePlans`** | `/subscription-plans` | `GET` | `client/src/app/plan/page.jsx`<br>`client/src/app/(admin)/admin-plans/page.jsx`<br>`client/src/app/(admin)/admin-dashboard/page.jsx` | Fetches all active premium subscription plans and pricing tiers available for purchase. |
+| **`createPlan`** | `/subscription-plans` | `POST` | `client/src/app/(admin)/admin-plans/page.jsx` | Admin endpoint to create a new premium subscription plan with price, billing period, features, and currency. |
+| **`updatePlan`** | `/subscription-plans/:id` | `PUT` | `client/src/app/(admin)/admin-plans/page.jsx` | Admin endpoint to update pricing, descriptions, and feature sets for an existing subscription plan. |
+| **`deactivatePlan`** | `/subscription-plans/:id` | `DELETE` | `client/src/app/(admin)/admin-plans/page.jsx` | Admin endpoint to deactivate/soft-delete a subscription plan so new users cannot subscribe. |
+| **`getAllPlansAdmin`** | `/subscription-plans/all` | `GET` | `client/src/utils/api.js` *(Admin management)* | Admin utility function to retrieve all subscription plans regardless of active status. |
+| **`activatePlanAdmin`** | `/subscription-plans/:id/activate` | `PATCH` | `client/src/utils/api.js` *(Admin management)* | Admin utility function to reactivate a previously deactivated subscription plan. |
+| **`createSubscription`** | `/subscriptions` | `POST` | `client/src/app/plan/page.jsx` | Initiates a subscription purchase for a chosen plan ID, creating a pending subscription record awaiting payment. |
+| **`getMySubscription`** | `/subscriptions/me` | `GET` | `client/src/app/plan/page.jsx` | Fetches the active subscription details and membership status for the logged-in user. |
+| **`cancelMySubscription`** | `/subscriptions/me/cancel` | `POST` | `client/src/app/plan/page.jsx` | Cancels the authenticated user's active recurring subscription. |
+| **`createPayment`** | `/payments` | `POST` | `client/src/app/plan/page.jsx` | Processes payment for a pending subscription using payment method and idempotency key to prevent double charging. |
+
+---
+
+## 🔌 Real-Time Socket.IO Events
+
+In addition to REST endpoints, real-time interactive messaging is powered by **Socket.IO** configured in `server/socket/chatSocket.js` and `client/src/app/messages/page.jsx`:
+
+| Socket Event | Direction | Triggered When | Payload / Purpose |
+| :--- | :--- | :--- | :--- |
+| **`join_conversation`** | Client ➔ Server | User selects a conversation room | `{ conversationId }` — Joins the conversation room and marks existing unread messages as seen. |
+| **`send_message`** | Client ➔ Server | User sends a new message | `{ conversationId, content }` — Saves message to database and broadcasts `new_message` to room. |
+| **`new_message`** | Server ➔ Client | Message posted | Message object — Displays incoming chat bubble instantly to participants. |
+| **`mark_as_seen`** | Client ➔ Server | User views messages | `{ conversationId }` — Updates seen status and triggers `messages_seen`. |
+| **`messages_seen`** | Server ➔ Client | Counterpart viewed messages | `{ conversationId, byUserId }` — Renders read receipt checkmarks. |
+| **`typing`** | Client ➔ Server / Server ➔ Client | User starts typing | `{ conversationId }` — Displays live "User is typing..." indicator. |
+| **`stop_typing`** | Client ➔ Server / Server ➔ Client | User stops typing | `{ conversationId }` — Hides typing indicator. |
+
+---
+
+## 🛠️ Architecture Notes & Highlights
 
 > [!TIP]
-> Because we centralized these into `utils/api.js`, your React components no longer need to know *how* to talk to the backend. They just import these functions, pass in the data, and await the results!
+> **Centralized Request Handling (`customFetch`)**:
+> All HTTP calls funnel through `customFetch` in `client/src/utils/api.js`. This guarantees that:
+> 1. `credentials: "include"` is systematically attached so HTTP-only JWT cookies are sent with every request.
+> 2. `401 Unauthorized` responses automatically wipe expired local cache and cleanly redirect to `/login`.
+> 3. JSON headers and URL prefixes (`http://localhost:5000`) are handled consistently across all components.

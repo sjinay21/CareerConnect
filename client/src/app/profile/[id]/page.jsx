@@ -10,22 +10,8 @@ import Textarea from "@/components/ui/textarea";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { useParams, useRouter } from "next/navigation";
-import {
-  getUserById,
-  getUserProfile,
-  getPosts,
-  updatePost,
-  deletePost,
-  getConnections,
-  updateUserProfile,
-  createOrGetConversation,
-  logoutUser,
-} from "@/utils/api";
-import {
-  TOAST_MESSAGES,
-  showSuccessToast,
-  showErrorToast,
-} from "@/components/ui/toastUtils";
+import {getUserById,getUserProfile,getPosts,updatePost,deletePost,getConnections,updateUserProfile,createOrGetConversation,logoutUser,} from "@/utils/api";
+import {TOAST_MESSAGES,showSuccessToast,showErrorToast,} from "@/components/ui/toastUtils";
 import Post from "@/components/feed/post";
 
 function ProfilePage() {
@@ -34,20 +20,11 @@ function ProfilePage() {
   const userId = params.id;
   const { profile: loggedInUser } = useProfile();
   const [profile, setProfile] = useState(null);
-  const [profileViewsCount, setProfileViewsCount] = useState(null);
 
-  const isOwnProfile =
-    loggedInUser?.id != null &&
-    profile?.id != null &&
-    loggedInUser.id == profile.id;
+  const isOwnProfile = loggedInUser?.id != null && profile?.id != null && loggedInUser.id == profile.id;
+
   const [editProfile, setEditProfile] = useState(false);
-  const [editData, setEditData] = useState({
-    name: "",
-    summary: "",
-    location: "",
-    about: "",
-    skills: "",
-  });
+  const [editData, setEditData] = useState({name: "",summary: "",location: "",about: "",skills: ""});
   const [profilePictureFile, setProfilePictureFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
 
@@ -92,7 +69,6 @@ function ProfilePage() {
           if (data.user) {
             setProfile(data.user);
             currentProfileId = data.user.id;
-            setProfileViewsCount(data.profileViews ?? 0);
           }
         }
 
@@ -242,6 +218,8 @@ function ProfilePage() {
       showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
     }
   }
+
+
 
   if (!profile) {
     return (
@@ -401,17 +379,6 @@ function ProfilePage() {
         <div className="hidden md:flex flex-col gap-4 md:w-[28%] my-5">
           <div className="sticky top-19 flex flex-col gap-4 w-full">
             <Advertisement />
-            
-            <Card padding={4}>
-              <div className="font-semibold text-gray-800 mb-1">
-                Profile views
-              </div>
-              <div className="text-gray-600 text-sm">
-                {profileViewsCount === null 
-                  ? "Loading views..." 
-                  : `Profile views: ${profileViewsCount}`}
-              </div>
-            </Card>
           </div>
         </div>
       </div>
