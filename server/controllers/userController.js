@@ -208,10 +208,22 @@ export const getUserById = async (req, res) => {
 
 export const getProfileViewers = async (req, res) => {
   try {
+    const rawPeriod = req.query.period;
+    const period = (rawPeriod === undefined || rawPeriod === "") ? 30 : Number(rawPeriod);
+
+    if (![7, 30, 90].includes(period)) {
+      return res.status(400).json({ message: "Invalid period. Supported periods are 7, 30, and 90" });
+    }
+
     const profileOwnerId = req.user.id;
-    const viewers = await getProfileViewersService(profileOwnerId);
+    const { counts, viewers } = await getProfileViewersService(profileOwnerId, period);
+
+    const total = period === 7 ? counts.last7Days : period === 90 ? counts.last90Days : counts.last30Days;
 
     res.status(200).json({
+      period,
+      total,
+      counts,
       viewers
     });
   } catch (error) {

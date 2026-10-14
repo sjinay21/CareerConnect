@@ -66,8 +66,9 @@ export const getUserById = async (userId) => {
   });
 };
 
-export const getProfileViewers = async () => {
-  return await customFetch("/users/profile/viewers", {
+export const getProfileViewers = async (period) => {
+  const query = period ? `?period=${period}` : "";
+  return await customFetch(`/users/profile/viewers${query}`, {
     method: "GET",
   });
 };

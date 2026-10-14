@@ -20,7 +20,8 @@ export async function searchUsersService(search = "", rawLimit, rawOffset) {
 
 export async function getProfileViewCountService(profileOwnerId) {
     try {
-        return await getViewCount(profileOwnerId);
+        const counts = await getViewCount(profileOwnerId);
+        return counts.last30Days;
     } catch (error) {
         console.error("Error fetching profile view count:", error);
         return 0; // fallback to 0 if there's a db error
@@ -40,13 +41,15 @@ export async function recordProfileViewService(viewerId, profileOwnerId) {
     }
 }
 
-export async function getProfileViewersService(profileOwnerId) {
+export async function getProfileViewersService(profileOwnerId, period = 30) {
     if (!profileOwnerId) {
         throw new Error("Profile owner ID is required");
     }
 
     try {
-        return await getProfileViewersModel(profileOwnerId);
+        const counts = await getViewCount(profileOwnerId);
+        const viewers = await getProfileViewersModel(profileOwnerId, period);
+        return { counts, viewers };
     } catch (error) {
         console.error("Error fetching profile viewers:", error);
         throw error;

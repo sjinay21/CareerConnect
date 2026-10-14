@@ -27,6 +27,7 @@ function SettingsPage() {
   const [viewers, setViewers] = useState([]);
   const [viewersLoading, setViewersLoading] = useState(false);
   const [viewersError, setViewersError] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState(30);
 
   // Modals state
   const [isNameModalOpen, setIsNameModalOpen] = useState(false);
@@ -76,23 +77,22 @@ function SettingsPage() {
 
   useEffect(() => {
     if (activeTab === 'visibility') {
-      fetchVisibilityData();
+      fetchVisibilityData(selectedPeriod);
     }
   }, [activeTab]);
 
-  const fetchVisibilityData = async () => {
+  const fetchVisibilityData = async (period = selectedPeriod) => {
     try {
       setViewersLoading(true);
       setViewersError(null);
 
       const [profileRes, viewersRes] = await Promise.all([
         getUserProfile(),
-        getProfileViewers(),
+        getProfileViewers(period),
       ]);
 
       if (profileRes.ok) {
         const profileData = await profileRes.json();
-        setProfileViewsCount(profileData.profileViews ?? 0);
         if (profileData.user) {
           setCurrentUser(profileData.user);
         }
@@ -100,12 +100,35 @@ function SettingsPage() {
 
       if (viewersRes.ok) {
         const viewersData = await viewersRes.json();
+        setProfileViewsCount(viewersData.total ?? 0);
         setViewers(viewersData.viewers || []);
       } else {
         setViewersError("Unable to load profile viewers.");
       }
     } catch (err) {
       console.error("Error fetching visibility data:", err);
+      setViewersError("Failed to fetch profile viewers.");
+    } finally {
+      setViewersLoading(false);
+    }
+  };
+
+  const handlePeriodChange = async (newPeriod) => {
+    setSelectedPeriod(newPeriod);
+    try {
+      setViewersLoading(true);
+      setViewersError(null);
+
+      const res = await getProfileViewers(newPeriod);
+      if (res.ok) {
+        const data = await res.json();
+        setProfileViewsCount(data.total ?? 0);
+        setViewers(data.viewers || []);
+      } else {
+        setViewersError("Unable to load profile viewers.");
+      }
+    } catch (err) {
+      console.error("Error fetching profile viewers for period:", err);
       setViewersError("Failed to fetch profile viewers.");
     } finally {
       setViewersLoading(false);
@@ -309,16 +332,29 @@ function SettingsPage() {
 
                     {/* Who's viewed your profile & Profile views */}
                     <div className="pb-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                         <div>
                           <h4 className="text-lg font-medium text-gray-800">Who's viewed your profile</h4>
                           <p className="text-sm text-gray-500">See members who recently visited your profile and track overall visits</p>
                         </div>
-                        <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full ">
-                          <span className="text-lg font-semibold text-blue-600 ">Profile views:</span>
-                          <span className="text-lg font-bold text-blue-700">
-                            {profileViewsCount ?? 0}
-                          </span>
+                        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 self-start sm:self-auto">
+                          <select
+                            value={selectedPeriod}
+                            onChange={(e) => handlePeriodChange(Number(e.target.value))}
+                            disabled={viewersLoading}
+                            className="text-sm font-medium bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition cursor-pointer"
+                          >
+                            <option value={7}>Last 7 days</option>
+                            <option value={30}>Last 30 days</option>
+                            <option value={90}>Last 90 days</option>
+                          </select>
+
+                          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full">
+                            <span className="text-sm sm:text-base font-semibold text-blue-600">Profile views:</span>
+                            <span className="text-sm sm:text-base font-bold text-blue-700">
+                              {profileViewsCount ?? 0}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
