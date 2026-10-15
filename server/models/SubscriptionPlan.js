@@ -1,22 +1,22 @@
 import pool from "../config/db.js";
 
-async function createPlan({ name, description, features, price, currency, billing_period }) {
+async function createPlan({ name, description, features, price, currency, billing_period, tier }) {
     const result = await pool.query(`
-        INSERT INTO subscription_plans (name, description, features, price, currency, billing_period)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO subscription_plans (name, description, features, price, currency, billing_period, tier)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT (name) DO NOTHING
         RETURNING *;
-    `, [name, description, features, price, currency, billing_period]);
+    `, [name, description, features, price, currency, billing_period, tier]);
     return result.rows[0];
 }
 
-async function updatePlan(id, { name, description, features, price, currency, billing_period }) {
+async function updatePlan(id, { name, description, features, price, currency, billing_period, tier }) {
     const result = await pool.query(`
         UPDATE subscription_plans
-        SET name = $1, description = $2, features = $3, price = $4, currency = $5, billing_period = $6, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $7
+        SET name = $1, description = $2, features = $3, price = $4, currency = $5, billing_period = $6, tier = $7, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $8
         RETURNING *;
-    `, [name, description, features, price, currency, billing_period, id]);
+    `, [name, description, features, price, currency, billing_period, tier, id]);
     return result.rows[0];
 }
 
@@ -31,7 +31,7 @@ async function getPlanByName(name) {
 }
 
 async function getActivePlans() {
-    const result = await pool.query(`SELECT id, name, description, features, price, currency, billing_period FROM subscription_plans WHERE is_active = TRUE ORDER BY id ASC;`);
+    const result = await pool.query(`SELECT id, name, description, features, price, currency, billing_period, tier FROM subscription_plans WHERE is_active = TRUE ORDER BY id ASC;`);
     return result.rows;
 }
 

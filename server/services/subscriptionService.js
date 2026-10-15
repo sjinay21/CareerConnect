@@ -36,7 +36,7 @@ export async function cancelSubscriptionById(userId, subscriptionId) {
     return await cancelSubscription(subId);
 }
 
-async function initiateSubscriptionPurchase(userId, planId) {
+export async function initiateSubscriptionPurchase(userId, planId) {
     if (!planId || isNaN(parseInt(planId, 10))) {
         throw { statusCode: 400, message: "Invalid or missing subscription ID" };
     }
@@ -62,7 +62,3 @@ async function initiateSubscriptionPurchase(userId, planId) {
         }
     };
 }
-
-export {
-    initiateSubscriptionPurchase
-};

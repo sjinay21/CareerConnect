@@ -17,6 +17,7 @@ export const ROUTES = {
   ADMIN_PLANS: "/admin-plans",
   PLAN: "/plan",
   SETTINGS: "/settings",
+  HELP: "/help",
   PROFILE: (id) => `/profile/${id}`,
   JOB: (id) => `/jobs/${id}`,
   POST: (id) => `/post/${id}`,
@@ -46,5 +47,6 @@ export const useAppNavigation = () => {
     goToAdminPlans: () => router.push(ROUTES.ADMIN_PLANS),
     goToPlan: () => router.push(ROUTES.PLAN),
     goToSettings: () => router.push(ROUTES.SETTINGS),
+    goToHelp: () => router.push(ROUTES.HELP),
   };
 };

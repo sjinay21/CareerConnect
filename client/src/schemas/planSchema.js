@@ -7,4 +7,7 @@ export const planSchema = Yup.object().shape({
   price: Yup.number().min(0, "Price cannot be negative").required("Price is required"),
   currency: Yup.string().required("Currency is required"),
   billing_period: Yup.string().required("Billing period is required"),
+  tier: Yup.string()
+    .oneOf(["premium", "super_premium"], "Plan tier must be Premium or Super Premium")
+    .required("Plan tier is required"),
 });

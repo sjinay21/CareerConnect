@@ -16,7 +16,7 @@ export default function SubscriptionPlansPage() {
   const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
   const [currentPlan, setCurrentPlan] = useState(null);
   const [formData, setFormData] = useState({
-    name: "", description: "", features: "", price: "", currency: "INR", billing_period: "monthly"
+    name: "", description: "", features: "", price: "", currency: "INR", billing_period: "monthly", tier: "premium"
   });
   const [formError, setFormError] = useState("");
   const [formProcessing, setFormProcessing] = useState(false);
@@ -42,7 +42,7 @@ export default function SubscriptionPlansPage() {
 
   const openAddModal = () => {
     setModalMode("add");
-    setFormData({ name: "", description: "", features: "", price: "", currency: "INR", billing_period: "monthly" });
+    setFormData({ name: "", description: "", features: "", price: "", currency: "INR", billing_period: "monthly", tier: "premium" });
     setFormError("");
     setIsModalOpen(true);
   };
@@ -56,7 +56,8 @@ export default function SubscriptionPlansPage() {
       features: plan.features || "",
       price: plan.price,
       currency: plan.currency,
-      billing_period: plan.billing_period
+      billing_period: plan.billing_period,
+      tier: plan.tier || "premium"
     });
     setFormError("");
     setIsModalOpen(true);
@@ -125,6 +126,7 @@ export default function SubscriptionPlansPage() {
               <tr className="bg-[#f8f9fc] border-b border-gray-200 text-xs font-bold text-gray-600 uppercase tracking-wider">
                 <th className="p-4">ID</th>
                 <th className="p-4">Name</th>
+                <th className="p-4">Tier</th>
                 <th className="p-4 min-w-[200px]">Description</th>
                 <th className="p-4 min-w-[200px]">Features</th>
                 <th className="p-4">Price</th>
@@ -136,14 +138,23 @@ export default function SubscriptionPlansPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="9" className="p-10 text-center text-gray-500 font-medium">Loading plans...</td></tr>
+                <tr><td colSpan="10" className="p-10 text-center text-gray-500 font-medium">Loading plans...</td></tr>
               ) : plans.length === 0 ? (
-                <tr><td colSpan="9" className="p-10 text-center text-gray-500 font-medium">No active plans found.</td></tr>
+                <tr><td colSpan="10" className="p-10 text-center text-gray-500 font-medium">No active plans found.</td></tr>
               ) : (
                 plans.map(plan => (
                   <tr key={plan.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                     <td className="p-4 text-gray-500 font-mono text-sm">{plan.id}</td>
                     <td className="p-4 font-bold text-gray-900">{plan.name}</td>
+                    <td className="p-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        plan.tier === "super_premium"
+                          ? " text-purple-800 border border-purple-200 font-bold"
+                          : " text-blue-800 border border-blue-200 font-bold"
+                      }`}>
+                        {plan.tier === "super_premium" ? "Super Premium" : "Premium"}
+                      </span>
+                    </td>
                     <td className="p-4 text-gray-600 text-sm truncate max-w-xs">{plan.description}</td>
                     <td className="p-4 text-gray-600 text-sm truncate max-w-xs" title={plan.features}>{plan.features}</td>
                     <td className="p-4 font-bold text-gray-900">{plan.price}</td>
@@ -208,33 +219,41 @@ export default function SubscriptionPlansPage() {
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Plan Name *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Plan Name <span className="text-red-500">*</span></label>
                       <Field type="text" name="name" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-600 outline-none" placeholder="e.g. Standard" />
                       {errors.name && touched.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Price *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Price <span className="text-red-500">*</span></label>
                       <Field type="number" name="price" min="0" step="0.01" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-600 outline-none" placeholder="0.00" />
                       {errors.price && touched.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
                     </div>
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Description *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Description <span className="text-red-500">*</span></label>
                     <Field as="textarea" name="description" rows="2" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-600 outline-none" placeholder="Enter plan description..."></Field>
                     {errors.description && touched.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Features *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Features <span className="text-red-500">*</span></label>
                     <Field as="textarea" name="features" rows="3" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-600 outline-none" placeholder="Enter features (one per line)"></Field>
                     {errors.features && touched.features && <p className="text-red-500 text-sm mt-1">{errors.features}</p>}
                     <p className="text-xs text-gray-500 mt-1">Place each feature on a new line.</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Currency *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Plan Tier <span className="text-red-500">*</span></label>
+                      <Field as="select" name="tier" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-600 outline-none">
+                        <option value="premium">Premium</option>
+                        <option value="super_premium">Super Premium</option>
+                      </Field>
+                      {errors.tier && touched.tier && <p className="text-red-500 text-sm mt-1">{errors.tier}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Currency <span className="text-red-500">*</span></label>
                       <Field as="select" name="currency" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-600 outline-none">
                         <option value="INR">INR (₹)</option>
                         <option value="USD">USD ($)</option>
@@ -243,7 +262,7 @@ export default function SubscriptionPlansPage() {
                       {errors.currency && touched.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Billing Period *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Billing Period <span className="text-red-500">*</span></label>
                       <Field as="select" name="billing_period" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-600 outline-none">
                         <option value="monthly">Monthly</option>
                         <option value="yearly">Yearly</option>

@@ -21,7 +21,7 @@ import { useProfile } from "@/hooks/useProfile";
 
 export default function Navbar2() {
   const { profile } = useProfile();
-  const { goToFeeds, goToJobs, goToProfile, goToSettings, goToPlan, goToAdminDashboard } = useAppNavigation();
+  const { goToFeeds, goToJobs, goToProfile, goToSettings, goToPlan, goToAdminDashboard, goToHelp } = useAppNavigation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMeDropdownOpen, setIsMeDropdownOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -137,7 +137,15 @@ export default function Navbar2() {
                   >
                     Settings & Privacy
                   </div>
-                  <div className="block text-sm text-gray-600 hover:underline mb-2 py-1 cursor-pointer">Help</div>
+                  <div
+                    onClick={() => {
+                      setIsMeDropdownOpen(false);
+                      goToHelp();
+                    }}
+                    className="block text-sm text-gray-600 hover:underline mb-2 py-1 cursor-pointer"
+                  >
+                    Help
+                  </div>
                   <div className="block text-sm text-gray-600 hover:underline py-1 cursor-pointer">Language</div>
                 </div>
 
@@ -229,6 +237,15 @@ export default function Navbar2() {
               className="text-gray-600 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-md font-medium block cursor-pointer"
             >
               Settings & Privacy
+            </div>
+            <div
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                goToHelp();
+              }}
+              className="text-gray-600 hover:text-black hover:bg-gray-50 px-3 py-2 rounded-md font-medium block cursor-pointer"
+            >
+              Help Center
             </div>
             <div
               onClick={() => {

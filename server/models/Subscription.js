@@ -28,7 +28,7 @@ async function getSubscriptionByIdForUpdate(id, client = pool) {
 
 async function getUserActiveSubscription(userId) {
     const query = `
-        SELECT s.*, p.name as plan_name, p.features as plan_features 
+        SELECT s.*, p.name as plan_name, p.features as plan_features, p.tier 
         FROM subscriptions s
         JOIN subscription_plans p ON s.plan_id = p.id
         WHERE s.user_id = $1 

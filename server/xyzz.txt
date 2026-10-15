@@ -516,3 +516,48 @@ We'll keep the three-table schema approved by your senior. We won't introduce a 
 I recommend implementing Phase 1 first, then moving through the phases in order. The most important design decision before Phase 2 is defining the subscription status transitions and how failed payment attempts affect a pending subscription. We'll settle those rules before writing the purchase API.
 
 That way, you're learning Level 1 and Level 2 concepts through the actual implementation, without revisiting the backend fundamentals you've already learned.
+
+
+Free Plan
+₹0 / forever
+
+Restricted access
+- Profile-view count visible.
+- Viewer list visible but blurred or restricted.
+- Viewer names, profile pictures, and other identifying details are not revealed in the API response.
+- No viewer-list period filter.
+- No profile-view graph.
+
+
+
+
+Premium Plan
+₹599 / month
+
+Viewer list unlocked
+- Profile-view count visible.
+- Full, identifiable viewer list.
+- Period filter: 7, 30, and 90 days.
+- No profile-view graph.
+
+
+
+
+Super Premium Plan
+₹6,999 / year
+
+All insights unlocked
+- Profile-view count visible.
+- Full, identifiable viewer list.
+- Period filter: 7, 30, and 90 days.
+- Profile-view graph with daily view counts.
+- Graph period follows the selected period: 7, 30, or 90 days.
+
+
+Implementation order
+1. Stop using the old hardcoded tier logic and replace it gradually with feature-based access checks.
+2. Implement backend feature CRUD.
+3. Implement frontend feature CRUD.
+4. Remove the hardcoded Free-plan logic and assign the database Free plan by default.
+5. Implement and connect the feature-lock middleware.
+6. Update Profile Insights to use feature assignments.

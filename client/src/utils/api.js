@@ -73,6 +73,13 @@ export const getProfileViewers = async (period) => {
   });
 };
 
+export const getProfileViewsGraph = async (period) => {
+  const query = period ? `?period=${period}` : "";
+  return await customFetch(`/users/profile/views/graph${query}`, {
+    method: "GET",
+  });
+};
+
 export const updateUserProfile = async (data) => {
   const isForm = Boolean(data.append);
 

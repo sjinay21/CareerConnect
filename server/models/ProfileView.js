@@ -47,4 +47,20 @@ async function getProfileViewers(profileOwnerId, period = 30) {
   return result.rows;
 }
 
-export { getViewCount, recordProfileView, getProfileViewers };
+async function getProfileViewsGraph(profileOwnerId, period = 30) {
+  const query = `
+    SELECT
+      DATE(viewed_at) AS view_date,
+      COUNT(*) AS total_views
+    FROM profile_views
+    WHERE profile_owner_id = $1
+      AND viewed_at >= NOW() - INTERVAL '1 day' * $2
+    GROUP BY DATE(viewed_at)
+    ORDER BY view_date ASC;
+  `;
+
+  const result = await pool.query(query, [profileOwnerId, period]);
+  return result.rows;
+}
+
+export { getViewCount, recordProfileView, getProfileViewers, getProfileViewsGraph };

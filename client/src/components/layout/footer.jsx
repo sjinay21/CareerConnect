@@ -19,6 +19,13 @@ export default function Footer() {
           className="w-6 h-6"
         />
       </Link>
+      <div className="flex gap-4 text-xs text-gray-600 mb-2">
+        <Link href={ROUTES.HELP} className="hover:underline hover:text-blue-700">Help Center</Link>
+        <span>•</span>
+        <Link href={ROUTES.SETTINGS} className="hover:underline hover:text-blue-700">Settings & Privacy</Link>
+        <span>•</span>
+        <Link href={ROUTES.PLAN} className="hover:underline hover:text-blue-700">Premium</Link>
+      </div>
       <p className="text-gray-600 text-sm">@Copyright 2026</p>
     </footer>
   );

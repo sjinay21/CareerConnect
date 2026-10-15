@@ -20,6 +20,7 @@ import jobsRoutes from "./routes/jobsRoutes.js";
 import subscriptionPlanRoutes from "./routes/subscriptionPlanRoutes.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import featureRoutes from "./routes/featureRoutes.js";
 import { socketAuthMiddleware } from "./middleware/socketAuthMiddleware.js";
 import { initializeSocket } from "./socket/socket.js";
 import initializeCronJobs from "./utils/cronJobs.js";
@@ -67,6 +68,7 @@ app.use("/jobs", jobsRoutes);
 app.use("/subscription-plans", subscriptionPlanRoutes);
 app.use("/subscriptions", subscriptionRoutes);
 app.use("/payments", paymentRoutes);
+app.use("/features", featureRoutes);
 
 // Socket Authentication Middleware
 io.use(socketAuthMiddleware);

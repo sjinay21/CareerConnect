@@ -1,8 +1,10 @@
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { updateProfile, getAllUsersList, findById, searchUsers, findByEmail } from "../models/User.js";
-import { getProfileViewCountService, recordProfileViewService, getProfileViewersService } from "../services/userService.js";
+import { getProfileViewCountService, recordProfileViewService, getProfileViewersService, getProfileViewsGraphService } from "../services/userService.js";
 import { updateUserSchema } from "../schema/userschema.js";
 import bcrypt from "bcryptjs";
+// Temporarily commented out for feature-based authorization migration:
+// import { PLAN_TIERS } from "../middleware/subscriptionMiddleware.js";
  
 export const getMe = async (req, res) => {
   try {
@@ -210,14 +212,28 @@ export const getProfileViewers = async (req, res) => {
   try {
     const rawPeriod = req.query.period;
     const period = (rawPeriod === undefined || rawPeriod === "") ? 30 : Number(rawPeriod);
-
     if (![7, 30, 90].includes(period)) {
       return res.status(400).json({ message: "Invalid period. Supported periods are 7, 30, and 90" });
     }
-
     const profileOwnerId = req.user.id;
-    const { counts, viewers } = await getProfileViewersService(profileOwnerId, period);
+    /* Temporarily commented out old tier-based restriction logic:
+    const userTier = req.userTier || PLAN_TIERS.FREE;
+    const effectivePeriod = userTier === PLAN_TIERS.FREE ? 30 : period;
+    const { counts, viewers } = await getProfileViewersService(profileOwnerId, effectivePeriod);
+    const total = effectivePeriod === 7 ? counts.last7Days : effectivePeriod === 90 ? counts.last90Days : counts.last30Days;
+    const finalViewers = userTier === PLAN_TIERS.FREE
+      ? viewers.map((v) => ({
+          view_id: v.view_id,
+          viewer_id: null,
+          name: "LinkedIn Member",
+          profile_picture_url: null,
+          summary: "Subscribe to Premium to see who viewed your profile",
+          viewed_at: v.viewed_at,
+        }))
+      : viewers;
+    */
 
+    const { counts, viewers } = await getProfileViewersService(profileOwnerId, period);
     const total = period === 7 ? counts.last7Days : period === 90 ? counts.last90Days : counts.last30Days;
 
     res.status(200).json({
@@ -228,6 +244,28 @@ export const getProfileViewers = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching profile viewers:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getProfileViewsGraph = async (req, res) => {
+  try {
+    const rawPeriod = req.query.period;
+    const period = (rawPeriod == undefined || rawPeriod == "") ? 30 : Number(rawPeriod);
+
+    if (![7, 30, 90].includes(period)) {
+      return res.status(400).json({ message: "Invalid period. Supported periods are 7, 30, and 90" });
+    }
+
+    const profileOwnerId = req.user.id;
+    const views = await getProfileViewsGraphService(profileOwnerId, period);
+
+    res.status(200).json({
+      period,
+      views
+    });
+  } catch (error) {
+    console.error("Error fetching profile views graph:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

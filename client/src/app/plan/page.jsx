@@ -4,6 +4,7 @@ import PrivateRoute from "@/Route/privateroute";
 import { getActivePlans, createSubscription, createPayment, getMySubscription, cancelMySubscription } from "@/utils/api";
 import { v4 as uuidv4 } from "uuid";
 import CheckIcon from '@mui/icons-material/Check';
+import LockIcon from '@mui/icons-material/Lock';
 import { showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 
 function PlanPage() {
@@ -173,12 +174,12 @@ function PlanPage() {
       <main className="flex-grow flex flex-col items-center p-4">
         
         {activeSub && (
-          <div className="w-full max-w-4xl bg-white border border-green-500 rounded-xl p-6 mb-8 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-green-500 text-white px-4 py-1 text-sm font-bold rounded-bl-lg">Active Premium</div>
+          <div className="w-full max-w-4xl bg-white border border-blue-600 rounded-xl p-6 mb-8 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 text-sm font-bold rounded-bl-lg">Active Premium</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Current Plan: {activeSub.plan_name}</h2>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="text-gray-600">
-                <p>Status: <span className="font-semibold text-green-600 capitalize">{activeSub.status}</span></p>
+                <p>Status: <span className="font-semibold text-blue-600 capitalize">{activeSub.status}</span></p>
                 <p>Started: {new Date(activeSub.starts_at).toLocaleDateString()}</p>
                 <p>Expires: {activeSub.expires_at ? new Date(activeSub.expires_at).toLocaleDateString() : 'Never (Lifetime)'}</p>
               </div>
@@ -233,10 +234,15 @@ function PlanPage() {
               <div className="flex-grow">
                 <p className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Features</p>
                 <ul className="flex flex-col gap-3 text-sm text-gray-600">
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-green-500" /> Create and manage your profile</li>
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-green-500" /> Send connection requests</li>
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-green-500" /> Browse jobs</li>
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-green-500" /> Basic profile visibility</li>
+                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Create and manage your profile</li>*/}
+                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Send connection requests</li>*/}
+                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Browse jobs</li>*/}
+                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Basic profile visibility</li>*/}
+                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Profile-view count visible.</li>
+                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Viewer list visible but blurred or restricted.</li>
+                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Viewer names, profile pictures, and other identifying details are not visible.</li>
+                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> No viewer-list period filter.</li>
+                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" />No profile-view graph.</li>
                 </ul>
               </div>
             </div>
@@ -276,7 +282,7 @@ function PlanPage() {
                     disabled={isCurrentActivePlan || processingId === plan.id}
                     className={`w-full py-2.5 px-4 font-semibold rounded-full mb-8 transition-colors ${
                       isCurrentActivePlan 
-                        ? "bg-green-600 text-white cursor-default"
+                        ? "bg-blue-600 text-white cursor-default"
                         : isFeatured 
                           ? "bg-blue-600 hover:bg-blue-700 text-white" 
                           : "bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
@@ -343,7 +349,7 @@ function PlanPage() {
                 Select Payment Method
               </label>
               <select 
-                className="w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full border border-gray-300 rounded-lg p-3 text-gray-900"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
               >
@@ -353,13 +359,13 @@ function PlanPage() {
                 <option value="net_banking">Net Banking</option>
               </select>
               <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <LockIcon className="text-blue-600" sx={{ fontSize: 16 }} />
                 Payments are securely processed.
               </p>
             </div>
 
             {paymentResult && (
-              <div className={`p-4 rounded-lg mb-6 ${paymentResult.success ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+              <div className={`p-4 rounded-lg mb-6 ${paymentResult.success ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
                 {paymentResult.message}
               </div>
             )}
@@ -397,7 +403,7 @@ function PlanPage() {
               <h2 className="text-xl font-semibold text-gray-900">Cancel Subscription</h2>
               <button 
                 onClick={() => setIsCancelModalOpen(false)}
-                className="text-red-500 hover:text-red-700 transition-colors"
+                className="text-red-500 hover:text-red-700 font-bold text-xl cursor-pointer"
                 disabled={cancelling}
               >
                 ✕

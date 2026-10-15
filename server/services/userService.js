@@ -1,5 +1,5 @@
 import { searchUsers as searchUsersModel } from "../models/User.js";
-import { getViewCount, recordProfileView as recordProfileViewModel, getProfileViewers as getProfileViewersModel } from "../models/ProfileView.js";
+import { getViewCount, recordProfileView as recordProfileViewModel, getProfileViewers as getProfileViewersModel, getProfileViewsGraph as getProfileViewsGraphModel } from "../models/ProfileView.js";
 import { PAGINATION_LIMITS } from "../config/paginationConfig.js";
 
 export async function searchUsersService(search = "", rawLimit, rawOffset) {
@@ -52,6 +52,19 @@ export async function getProfileViewersService(profileOwnerId, period = 30) {
         return { counts, viewers };
     } catch (error) {
         console.error("Error fetching profile viewers:", error);
+        throw error;
+    }
+}
+
+export async function getProfileViewsGraphService(profileOwnerId, period = 30) {
+    if (!profileOwnerId) {
+        throw new Error("Profile owner ID is required");
+    }
+
+    try {
+        return await getProfileViewsGraphModel(profileOwnerId, period);
+    } catch (error) {
+        console.error("Error fetching profile views graph:", error);
         throw error;
     }
 }
