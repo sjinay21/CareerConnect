@@ -15,7 +15,9 @@ export function useProfile() {
     subscription_plan: "Free",
     expiry_date: null,
     role: "user",
+    profileViews: 0,
   });
+  const [profileViews, setProfileViews] = useState(0);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -23,7 +25,9 @@ export function useProfile() {
         const res = await getUserProfile();
         if (res.ok) {
           const data = await res.json();
-          setProfile(data.user);
+          const views = data.profileViews ?? 0;
+          setProfile({ ...data.user, profileViews: views });
+          setProfileViews(views);
         }
       } catch (err) {
         console.error("Failed to load profile data", err);
@@ -32,5 +36,5 @@ export function useProfile() {
     fetchProfile();
   }, []);
 
-  return { profile, setProfile };
+  return { profile, setProfile, profileViews };
 }

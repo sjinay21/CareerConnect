@@ -2,23 +2,38 @@
 import { useState, useEffect } from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import LockIcon from "@mui/icons-material/Lock";
 import { getProfileViewsGraph } from "@/utils/api";
+import { useAppNavigation } from "@/hooks/useNavigation";
 
 export default function ProfileViewsGraph({ period = 30 }) {
+  const { goToPlan } = useAppNavigation();
   const [graphData, setGraphData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [featureLock, setFeatureLock] = useState(null);
 
 useEffect(() => {
   async function fetchGraph() {
     try {
       setLoading(true);
       setError(null);
+      setFeatureLock(null);
 
       const res = await getProfileViewsGraph(period);
 
       if (!res.ok) {
-        setError("Unable to load profile views graph.");
+        const errData = await res.json().catch(() => null);
+        if (res.status === 403) {
+          setFeatureLock({
+            isLocked: true,
+            message: errData?.message || "Profile views graph is not included in your current subscription plan.",
+            code: errData?.code,
+            requiredFeature: errData?.requiredFeature,
+          });
+        } else {
+          setError(errData?.message || "Unable to load profile views graph.");
+        }
         return;
       }
 
@@ -74,6 +89,24 @@ useEffect(() => {
         <div className="flex flex-col items-center justify-center h-[260px] bg-gray-50/50 rounded-lg">
           <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
           <span className="text-xs text-gray-500 font-medium">Loading profile views graph...</span>
+        </div>
+      ) : featureLock ? (
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-gray-50/60 rounded-lg border border-dashed border-gray-300">
+          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2.5">
+            <LockIcon className="w-5 h-5" />
+          </div>
+          <p className="text-sm font-semibold text-gray-800">
+            Profile Views Graph Locked
+          </p>
+          <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto mb-4">
+            {featureLock.message}
+          </p>
+          <button
+            onClick={goToPlan}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition cursor-pointer"
+          >
+            View Available Plans
+          </button>
         </div>
       ) : error ? (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">

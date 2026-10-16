@@ -338,6 +338,8 @@ export const deactivatePlan = async (id) => {
   });
 };
 
+export const deletePlan = deactivatePlan;
+
 export const getAllPlansAdmin = async () => {
   return await customFetch("/subscription-plans/all", {
     method: "GET",
@@ -399,3 +401,31 @@ export const cancelMySubscription = async () => {
     method: "POST",
   });
 };
+
+// Features API
+export const getFeatures = async () => {
+  return await customFetch("/features", {
+    method: "GET",
+  });
+};
+
+export const getFeatureById = async (id) => {
+  return await customFetch(`/features/${id}`, {
+    method: "GET",
+  });
+};
+
+export const createFeature = async (data) => {
+  return await customFetch("/features", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteFeature = async (id) => {
+  return await customFetch(`/features/${id}`, {
+    method: "DELETE",
+  });
+};
+

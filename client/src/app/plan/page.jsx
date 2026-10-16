@@ -31,17 +31,19 @@ function PlanPage() {
 
   const fetchPlansAndSubscription = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [plansRes, subRes] = await Promise.all([
         getActivePlans(),
         getMySubscription().catch(() => null)
       ]);
       
-      if (plansRes.ok) {
+      if (plansRes && plansRes.ok) {
         const data = await plansRes.json();
         setPlans(data.plans || data || []);
       } else {
-        setError("Failed to fetch subscription plans.");
+        const errData = plansRes ? await plansRes.json().catch(() => ({})) : {};
+        setError(errData.message || "Failed to fetch subscription plans.");
       }
       
       if (subRes && subRes.ok) {
@@ -51,6 +53,8 @@ function PlanPage() {
         } else {
           setActiveSub(null);
         }
+      } else {
+        setActiveSub(null);
       }
     } catch (err) {
       setError("An error occurred while fetching data.");
@@ -64,7 +68,8 @@ function PlanPage() {
   }, []);
 
   const handleSelectPlan = async (plan) => {
-    if (activeSub && activeSub.plan_id === plan.id) {
+    // If the user already has this plan active, do nothing
+    if (activeSub && Number(activeSub.plan_id) === Number(plan.id)) {
       return;
     }
     
@@ -77,8 +82,9 @@ function PlanPage() {
         setSelectedSubscription(subscription);
         setSelectedPlanDetails(plan);
         setCurrentIdempotencyKey(uuidv4());
-        setPaymentModalOpen(true);
+        setPaymentMethod("credit_card");
         setPaymentResult(null);
+        setPaymentModalOpen(true);
       } else {
         showErrorToast(data.message || "Failed to initiate subscription.");
       }
@@ -114,7 +120,7 @@ function PlanPage() {
         if (data.payment.status === 'failed') {
           setPaymentResult({ 
             success: false, 
-            message: "Payment declined by provider. Your subscription remains pending." 
+            message: "Payment could not be processed. Your subscription was not activated." 
           });
           setCurrentIdempotencyKey(uuidv4());
         } else {
@@ -122,20 +128,22 @@ function PlanPage() {
             success: true, 
             message: "Payment successful! Your subscription is now active." 
           });
-          // Refresh data to show active sub
+          showSuccessToast("Payment successful! Your plan is now active.");
           await fetchPlansAndSubscription();
         }
       } else {
         setPaymentResult({ 
           success: false, 
-          message: data.message || "Payment processing failed." 
+          message: data.message || "Payment processing failed. Please try again." 
         });
+        setCurrentIdempotencyKey(uuidv4());
       }
     } catch (err) {
       setPaymentResult({ 
         success: false, 
-        message: "A network error occurred while processing your payment." 
+        message: "A network error occurred while processing your payment. Please try again." 
       });
+      setCurrentIdempotencyKey(uuidv4());
     } finally {
       setPaymentProcessing(false);
     }
@@ -169,27 +177,54 @@ function PlanPage() {
     }
   };
 
+  const freePlan = plans.find((p) => Number(p.price) === 0 || p.name?.toLowerCase() === "free");
+  const effectiveCurrentPlan = activeSub || (freePlan ? {
+    id: freePlan.id,
+    plan_id: freePlan.id,
+    plan_name: freePlan.name,
+    plan_price: freePlan.price,
+    plan_currency: freePlan.currency,
+    plan_billing_period: freePlan.billing_period,
+    status: "active",
+    starts_at: null,
+    expires_at: null
+  } : null);
+  const effectiveCurrentPlanId = effectiveCurrentPlan ? Number(effectiveCurrentPlan.plan_id || effectiveCurrentPlan.id) : null;
+
   return (
     <div className="min-h-screen bg-[#f3f2ef] flex flex-col pt-4 md:pt-8">
       <main className="flex-grow flex flex-col items-center p-4">
         
-        {activeSub && (
+        {/* Current / Active Subscription Banner */}
+        {effectiveCurrentPlan && (
           <div className="w-full max-w-4xl bg-white border border-blue-600 rounded-xl p-6 mb-8 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 text-sm font-bold rounded-bl-lg">Active Premium</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Current Plan: {activeSub.plan_name}</h2>
+            <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 text-sm font-bold rounded-bl-lg">
+              {Number(effectiveCurrentPlan.plan_price) > 0 ? "Active Premium" : "Current Plan"}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Current Plan: {effectiveCurrentPlan.plan_name}</h2>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div className="text-gray-600">
-                <p>Status: <span className="font-semibold text-blue-600 capitalize">{activeSub.status}</span></p>
-                <p>Started: {new Date(activeSub.starts_at).toLocaleDateString()}</p>
-                <p>Expires: {activeSub.expires_at ? new Date(activeSub.expires_at).toLocaleDateString() : 'Never (Lifetime)'}</p>
+              <div className="text-gray-600 space-y-1">
+                <p>Status: <span className="font-semibold text-blue-600">{effectiveCurrentPlan.status}</span></p>
+                {effectiveCurrentPlan.starts_at && (
+                  <p>Started: {new Date(effectiveCurrentPlan.starts_at).toLocaleDateString()}</p>
+                )}
+                <p>
+                  Expires: {
+                    effectiveCurrentPlan.plan_billing_period === 'lifetime' || !effectiveCurrentPlan.expires_at 
+                      ? 'Never (Lifetime Plan)' 
+                      : new Date(effectiveCurrentPlan.expires_at).toLocaleDateString()
+                  }
+                </p>
               </div>
-              <button 
-                onClick={() => setIsCancelModalOpen(true)}
-                disabled={cancelling}
-                className="px-6 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300 font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
-              </button>
+              {Number(effectiveCurrentPlan.plan_price) > 0 && (
+                <button 
+                  onClick={() => setIsCancelModalOpen(true)}
+                  disabled={cancelling}
+                  className="px-6 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300 font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -205,7 +240,7 @@ function PlanPage() {
           )}
           
           {error && (
-            <div className="text-center text-red-600 text-lg">{error}</div>
+            <div className="text-center text-red-600 text-lg mb-6">{error}</div>
           )}
 
           {!loading && !error && plans.length === 0 && (
@@ -213,62 +248,36 @@ function PlanPage() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 lg:gap-8 justify-center">
-            
-            {/* Hardcoded Free Plan */}
-            <div className="bg-white border border-gray-200 hover:shadow-md rounded-2xl p-6 lg:p-8 flex flex-col relative transition-shadow">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Free</h2>
-              <p className="text-gray-500 mb-6 min-h-[48px]">Get started with the basics.</p>
-              
-              <div className="mb-6">
-                <span className="text-4xl font-extrabold text-gray-900">₹0</span>
-                <span className="text-gray-500 ml-1">forever</span>
-              </div>
-              
-              <button 
-                disabled
-                className={`w-full py-2.5 px-4 font-semibold rounded-full mb-8 transition-colors ${!activeSub ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-              >
-                {!activeSub ? 'Current Plan' : 'Free Tier'}
-              </button>
-
-              <div className="flex-grow">
-                <p className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Features</p>
-                <ul className="flex flex-col gap-3 text-sm text-gray-600">
-                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Create and manage your profile</li>*/}
-                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Send connection requests</li>*/}
-                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Browse jobs</li>*/}
-                  {/*<li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Basic profile visibility</li>*/}
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Profile-view count visible.</li>
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Viewer list visible but blurred or restricted.</li>
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> Viewer names, profile pictures, and other identifying details are not visible.</li>
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" /> No viewer-list period filter.</li>
-                  <li className="flex items-center gap-2"><CheckIcon className="w-5 h-5 text-blue-600" />No profile-view graph.</li>
-                </ul>
-              </div>
-            </div>
-
             {plans.map((plan) => {
-              const isFeatured = plan.billing_period === 'monthly' || plan.name.toLowerCase().includes('popular');
-              const isCurrentActivePlan = activeSub && activeSub.plan_id === plan.id;
+              const isCurrentActivePlan = effectiveCurrentPlanId && Number(plan.id) === Number(effectiveCurrentPlanId);
+              const isFeatured = (plan.billing_period === 'monthly' || plan.name?.toLowerCase().includes('popular')) && !isCurrentActivePlan;
 
               return (
                 <div 
                   key={plan.id}
-                  className={`bg-white border rounded-2xl p-6 lg:p-8 flex flex-col relative transition-shadow ${
-                    isFeatured ? "border-blue-700 shadow-lg transform md:-translate-y-4 border-2" : "border-gray-200 hover:shadow-md"
+                  className={`bg-white border rounded-2xl p-6 lg:p-8 flex flex-col relative transition-all ${
+                    isCurrentActivePlan 
+                      ? "border-blue-600 ring-2 ring-blue-600/30 shadow-md" 
+                      : isFeatured 
+                        ? "border-blue-700 shadow-lg transform md:-translate-y-4 border-2" 
+                        : "border-gray-200 hover:shadow-md"
                   }`}
                 >
-                  {isFeatured && (
+                  {isCurrentActivePlan ? (
+                    <div className="absolute top-0 right-6 -translate-y-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase shadow-sm flex items-center gap-1">
+                      <CheckIcon sx={{ fontSize: 16 }} /> Current Plan
+                    </div>
+                  ) : isFeatured ? (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-900 text-white px-4 py-1 rounded-full text-sm font-bold shadow-sm whitespace-nowrap">
                       Most Popular
                     </div>
-                  )}
+                  ) : null}
                   
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h2>
                   <p className="text-gray-500 mb-6 min-h-[48px]">{plan.description}</p>
                   
                   <div className="mb-6">
-                    <span className="text-4xl font-extrabold text-gray-900">
+                    <span className="text-4xl font-bold text-gray-900">
                       {plan.currency === 'USD' ? '$' : plan.currency === 'INR' ? '₹' : plan.currency + ' '}
                       {plan.price}
                     </span>
@@ -282,7 +291,7 @@ function PlanPage() {
                     disabled={isCurrentActivePlan || processingId === plan.id}
                     className={`w-full py-2.5 px-4 font-semibold rounded-full mb-8 transition-colors ${
                       isCurrentActivePlan 
-                        ? "bg-blue-600 text-white cursor-default"
+                        ? "bg-blue-50 text-blue-700 border border-blue-600 cursor-default"
                         : isFeatured 
                           ? "bg-blue-600 hover:bg-blue-700 text-white" 
                           : "bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
@@ -292,20 +301,27 @@ function PlanPage() {
                       ? "Current Plan" 
                       : processingId === plan.id 
                         ? "Initializing..." 
-                        : activeSub 
+                        : (activeSub && Number(activeSub.plan_price) > 0)
                           ? "Switch Plan" 
                           : "Upgrade Plan"}
                   </button>
 
                   <div className="flex-grow">
-                    <p className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Features</p>
+                    <p className="text-sm font-bold text-gray-900 mb-4 tracking-wider">Features</p>
                     <ul className="flex flex-col gap-3 text-sm text-gray-600">
-                      {plan.features ? plan.features.split('\n').map((feature, idx) => feature.trim() && (
-                        <li key={idx} className="flex items-start gap-2 text-left">
-                          <CheckIcon className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" /> 
-                          <span>{feature.trim()}</span>
-                        </li>
-                      )) : (
+                      {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                        plan.features.map((feature) => (
+                          <li key={feature.id} className="flex items-start gap-2 text-left">
+                            <CheckIcon className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" /> 
+                            <div>
+                              <span className="font-medium text-gray-900">{feature.name}</span>
+                              {feature.description && (
+                                <p className="text-xs text-gray-500 mt-0.5">{feature.description}</p>
+                              )}
+                            </div>
+                          </li>
+                        ))
+                      ) : (
                         <li className="flex items-start gap-2 text-gray-400 italic">No features listed</li>
                       )}
                     </ul>
@@ -323,9 +339,9 @@ function PlanPage() {
 
       {/* Mock Payment Modal */}
       {paymentModalOpen && selectedPlanDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl relative">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Complete Your Payment</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Payment</h2>
             
             <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
               <div className="flex justify-between items-center mb-2">
@@ -346,12 +362,16 @@ function PlanPage() {
 
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Select Payment Method
+                Payment Method
               </label>
               <select 
-                className="w-full border border-gray-300 rounded-lg p-3 text-gray-900"
+                disabled={paymentProcessing}
+                className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
+                onChange={(e) => {
+                  setPaymentMethod(e.target.value);
+                  setPaymentResult(null);
+                }}
               >
                 <option value="credit_card">Credit Card</option>
                 <option value="debit_card">Debit Card</option>
@@ -360,35 +380,52 @@ function PlanPage() {
               </select>
               <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                 <LockIcon className="text-blue-600" sx={{ fontSize: 16 }} />
-                Payments are securely processed.
+                Mock payment simulation environment.
               </p>
             </div>
 
             {paymentResult && (
-              <div className={`p-4 rounded-lg mb-6 ${paymentResult.success ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+              <div className={`p-4 rounded-lg mb-6 text-sm font-medium ${
+                paymentResult.success 
+                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                  : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
                 {paymentResult.message}
               </div>
             )}
 
             <div className="flex flex-col gap-3">
-              {(!paymentResult || !paymentResult.success) && (
+              {(!paymentResult || !paymentResult.success) ? (
                 <button
                   onClick={handleProcessPayment}
                   disabled={paymentProcessing}
                   className={`w-full py-3 rounded-full font-bold text-white transition-colors ${
-                    paymentProcessing ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                    paymentProcessing 
+                      ? 'bg-blue-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 shadow'
                   }`}
                 >
-                  {paymentProcessing ? 'Processing...' : `Pay ${selectedPlanDetails.currency} ${selectedPlanDetails.price}`}
+                  {paymentProcessing 
+                    ? 'Processing Payment...' 
+                    : Number(selectedPlanDetails.price) === 0 
+                      ? 'Activate Free Plan' 
+                      : `Pay ${selectedPlanDetails.currency} ${selectedPlanDetails.price}`}
+                </button>
+              ) : (
+                <button
+                  onClick={closePaymentModal}
+                  className="w-full py-3 rounded-full font-bold text-white bg-green-600 hover:bg-green-700 transition-colors shadow"
+                >
+                  Done / View Current Plan
                 </button>
               )}
               
               <button
                 onClick={closePaymentModal}
                 disabled={paymentProcessing}
-                className="w-full py-3 rounded-full font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="w-full py-2.5 rounded-full font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
-                {paymentResult && paymentResult.success ? 'Return to Page' : 'Cancel'}
+                {paymentResult && paymentResult.success ? 'Close' : 'Cancel'}
               </button>
             </div>
           </div>

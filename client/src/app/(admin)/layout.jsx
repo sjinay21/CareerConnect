@@ -7,6 +7,7 @@ import { useAppNavigation, ROUTES } from "@/hooks/useNavigation";
 import Link from "next/link";
 import HomeIcon from '@mui/icons-material/Home';
 import LayersIcon from '@mui/icons-material/Layers';
+import TuneIcon from '@mui/icons-material/Tune';
 
 export default function AdminLayout({ children }) {
   const { goToFeeds } = useAppNavigation();
@@ -56,6 +57,17 @@ export default function AdminLayout({ children }) {
             >
               <LayersIcon className="w-5 h-5" />
               Subscription Plans
+            </Link>
+            <Link 
+              href={ROUTES.ADMIN_FEATURES}
+              className={`px-4 py-3 rounded-lg font-semibold flex items-center gap-3 transition-colors ${
+                pathname === ROUTES.ADMIN_FEATURES 
+                  ? 'bg-blue-50 text-blue-700' 
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <TuneIcon className="w-5 h-5" />
+              Features
             </Link>
           </nav>
         </aside>

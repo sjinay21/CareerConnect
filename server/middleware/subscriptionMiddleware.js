@@ -1,128 +1,58 @@
-// ==============================================================================
-// TEMPORARILY COMMENTED OUT: Tier-based subscription logic
-// Preparing for migration to feature-based subscription access checks.
-// ==============================================================================
+import { getUserActiveSubscriptionWithFeatures } from "../models/Subscription.js";
+import { getFeatureByName } from "../models/Feature.js";
+export function requireFeature(featureName) {
+  return async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
 
-/*
-import { getUserActiveSubscription } from "../models/Subscription.js";
+      // 1. Resolve required feature record from database
+      const feature = await getFeatureByName(featureName);
+      if (!feature || !feature.is_active) {
+        return res.status(403).json({
+          message: `The "${featureName}" feature is currently unavailable.`,
+          code: "FEATURE_UNAVAILABLE",
+        });
+      }
 
-export const PLAN_TIERS = {
-  FREE: "free",
-  PREMIUM: "premium",
-  SUPER_PREMIUM: "super_premium",
-};
+      // 2. Fetch active subscription with assigned features (cached on req)
+      if (!req.subscription) {
+        req.subscription = await getUserActiveSubscriptionWithFeatures(userId);
+      }
 
-export function resolveUserTier(activeSub) {
-  if (!activeSub) {
-    return PLAN_TIERS.FREE;
-  }
+      if (!req.subscription) {
+        return res.status(403).json({
+          message: `Access denied. An active subscription is required to access "${feature.name}".`,
+          code: "SUBSCRIPTION_REQUIRED",
+          requiredFeature: feature.name,
+        });
+      }
 
-  const tier = activeSub.tier;
+      // 3. Verify the feature is assigned to the user's plan
+      const hasFeature = req.subscription.features.some((f) => f.id === feature.id);
+      if (!hasFeature) {
+        return res.status(403).json({
+          message: `Access denied. The "${feature.name}" feature is not included in your current subscription plan.`,
+          code: "FEATURE_LOCKED",
+          requiredFeature: feature.name,
+        });
+      }
 
-  if (tier === "super_premium") {
-    return PLAN_TIERS.SUPER_PREMIUM;
-  }
-
-  if (tier === "premium") {
-    return PLAN_TIERS.PREMIUM;
-  }
-  return PLAN_TIERS.FREE;
-}
-
-export async function getUserPlanTier(userId) {
-  const activeSub = await getUserActiveSubscription(userId);
-  const tier = resolveUserTier(activeSub);
-
-  return {
-    tier: tier,
-    subscription: activeSub || null,
+      req.currentFeature = feature;
+      next();
+    } catch (error) {
+      console.error("Feature authorization error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   };
 }
-
-export async function attachSubscriptionTier(req, res, next) {
-  try {
-    const planData = await getUserPlanTier(req.user.id);
-    const tier = planData.tier;
-    const subscription = planData.subscription;
-
-    req.userTier = tier;
-    req.activeSubscription = subscription;
+export async function requirePeriodFilter(req, res, next) {
+  const rawPeriod = req.query.period;
+  if (rawPeriod === undefined || rawPeriod === "") {
     return next();
-  } catch (error) {
-    console.error("Error resolving subscription tier:", error);
-    return res.status(500).json({ message: "Internal server error" });
   }
+  return requireFeature("Period Filter")(req, res, next);
 }
-
-export async function requireSuperPremium(req, res, next) {
-  try {
-    if (!req.userTier) {
-      const planData = await getUserPlanTier(req.user.id);
-      const tier = planData.tier;
-      const subscription = planData.subscription;
-
-      req.userTier = tier;
-      req.activeSubscription = subscription;
-    }
-
-    if (req.userTier !== PLAN_TIERS.SUPER_PREMIUM) {
-      return res.status(403).json({
-        message: "Access denied. The Profile Views graph is only available on the Super Premium plan.",
-        code: "FEATURE_LOCKED",
-        requiredPlan: "Super Premium",
-      });
-    }
-
-    return next();
-  } catch (error) {
-    console.error("Error in requireSuperPremium middleware:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-export async function requirePremiumForFilter(req, res, next) {
-  try {
-    const rawPeriod = req.query.period;
-    const userTier = req.userTier;
-
-    if (userTier === PLAN_TIERS.FREE && rawPeriod !== undefined && rawPeriod !== "") {
-      return res.status(403).json({
-        message: "Period filtering is only available on Premium plans. Upgrade to filter by 7, 30, or 90 days.",
-        code: "PERIOD_FILTER_LOCKED",
-        requiredPlan: "Premium",
-      });
-    }
-
-    return next();
-  } catch (error) {
-    console.error("Error in requirePremiumForFilter middleware:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-export async function requirePremium(req, res, next) {
-  try {
-    if (!req.userTier) {
-      const planData = await getUserPlanTier(req.user.id);
-      const tier = planData.tier;
-      const subscription = planData.subscription;
-
-      req.userTier = tier;
-      req.activeSubscription = subscription;
-    }
-
-    if (req.userTier === PLAN_TIERS.FREE) {
-      return res.status(403).json({
-        message: "Access denied. Premium subscription required.",
-        code: "FEATURE_LOCKED",
-        requiredPlan: "Premium",
-      });
-    }
-
-    return next();
-  } catch (error) {
-    console.error("Error in requirePremium middleware:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}
-*/
+export const requireProfileViewsGraph = requireFeature("Profile Views Graph");

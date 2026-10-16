@@ -561,3 +561,4 @@ Implementation order
 4. Remove the hardcoded Free-plan logic and assign the database Free plan by default.
 5. Implement and connect the feature-lock middleware.
 6. Update Profile Insights to use feature assignments.
+

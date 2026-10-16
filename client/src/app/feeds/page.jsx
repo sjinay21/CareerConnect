@@ -16,7 +16,7 @@ import PhotoOutlinedIcon from "@mui/icons-material/PhotoOutlined";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 function Feeds() {
-  const { profile } = useProfile();
+  const { profile, profileViews } = useProfile();
   const [addPostModel, setAddPostModel] = useState(false);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState(null);
@@ -122,12 +122,12 @@ function Feeds() {
             <Card padding={1}>
               <div className="w-full flex justify-between">
                 <div>Profile Viewers</div>
-                <div className="text-blue-900">25</div>
+                <div className="text-blue-900 font-semibold">{profileViews ?? 0}</div>
               </div>
-              <div className="w-full flex justify-between">
+              {/* <div className="w-full flex justify-between">
                 <div>Post Impressions</div>
                 <div className="text-blue-900">90</div>
-              </div>
+              </div> */}
             </Card>
           </div>
         </div>

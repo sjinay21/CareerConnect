@@ -1,4 +1,4 @@
-import {getAllActiveThePlans,getPlansById,createPlans,updatePlans,deactivatePlans} from "../services/subscriptionPlanService.js";
+import {getAllActiveThePlans,getAllPlansService,getPlansById,createPlans,updatePlans,deactivatePlans} from "../services/subscriptionPlanService.js";
 
 async function getActivePlans(req, res) {
     try {
@@ -45,14 +45,28 @@ async function updatePlan(req, res) {
     }
 }
 
-async function deactivatePlan(req, res) {
+async function deletePlan(req, res) {
     try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id) || id <= 0) {
             return res.status(400).json({ message: "Invalid plan ID" });
         }
         const plan = await deactivatePlans(id);
-        res.status(200).json(plan);
+        if (!plan) {
+            return res.status(404).json({ message: "Plan not found" });
+        }
+        res.status(200).json({ message: "Plan deleted successfully", plan });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({ message: error.message });
+    }
+}
+
+const deactivatePlan = deletePlan;
+
+async function getAllPlansAdmin(req, res) {
+    try {
+        const plans = await getAllPlansService();
+        res.status(200).json(plans);
     } catch (error) {
         res.status(error.statusCode || 500).json({ message: error.message });
     }
@@ -60,8 +74,10 @@ async function deactivatePlan(req, res) {
 
 export {
     getActivePlans,
+    getAllPlansAdmin,
     getPlanById,
     createPlan,
     updatePlan,
+    deletePlan,
     deactivatePlan
 };

@@ -8,9 +8,7 @@ import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
-import { logoutUser, getUserProfile, getProfileViewers, updateUserProfile, getMySubscription } from "@/utils/api";
+import { logoutUser, getUserProfile, getProfileViewers, updateUserProfile } from "@/utils/api";
 import ProfileViewsGraph from "@/components/ui/ProfileViewsGraph";
 import { TOAST_MESSAGES, showSuccessToast, showErrorToast } from "@/components/ui/toastUtils";
 import { Formik, Form, Field } from "formik";
@@ -26,15 +24,13 @@ function SettingsPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
 
-  // Subscription tier state: 'free' | 'premium' | 'super_premium'
-  // Temporarily commented out for feature-based subscription migration:
-  // const [userTier, setUserTier] = useState('free');
-
   // Profile views & viewers state for Visibility tab
   const [profileViewsCount, setProfileViewsCount] = useState(0);
   const [viewers, setViewers] = useState([]);
   const [viewersLoading, setViewersLoading] = useState(false);
   const [viewersError, setViewersError] = useState(null);
+  const [viewersLock, setViewersLock] = useState(null);
+  const [periodLock, setPeriodLock] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState(30);
 
   // Modals state
@@ -85,21 +81,19 @@ function SettingsPage() {
 
   useEffect(() => {
     if (activeTab === 'visibility') {
-      fetchVisibilityData(selectedPeriod);
+      fetchVisibilityData();
     }
   }, [activeTab]);
 
-  const fetchVisibilityData = async (period = selectedPeriod) => {
+  const fetchVisibilityData = async () => {
     try {
       setViewersLoading(true);
       setViewersError(null);
+      setViewersLock(null);
+      setPeriodLock(null);
 
-      // 1. Fetch user profile and subscription tier
-      const [profileRes, subRes] = await Promise.all([
-        getUserProfile(),
-        getMySubscription().catch(() => null),
-      ]);
-
+      // 1. Fetch user profile
+      const profileRes = await getUserProfile();
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         if (profileData.user) {
@@ -107,30 +101,20 @@ function SettingsPage() {
         }
       }
 
-      /* Temporarily commented out old tier resolution:
-      let currentTier = 'free';
-      if (subRes && subRes.ok) {
-        const subData = await subRes.json();
-        if (subData?.data && subData.data.status === 'active' && subData.data.tier) {
-          currentTier = subData.data.tier;
-        }
-      }
-      setUserTier(currentTier);
-
-      // 2. Fetch profile viewers:
-      // For Free tier: do NOT pass any period parameter (backend default is 30, explicit period is restricted)
-      // For Premium / : pass the selected period
-      const periodParam = currentTier === 'free' ? null : period;
-      const viewersRes = await getProfileViewers(periodParam);
-      */
-
-      // Directly fetch profile viewers for the requested period during transition
-      const viewersRes = await getProfileViewers(period);
+      // 2. Fetch default profile viewers without period parameter (backend default is 30 days)
+      const viewersRes = await getProfileViewers();
 
       if (viewersRes.ok) {
         const viewersData = await viewersRes.json();
         setProfileViewsCount(viewersData.total ?? 0);
         setViewers(viewersData.viewers || []);
+      } else if (viewersRes.status === 403) {
+        const errData = await viewersRes.json().catch(() => null);
+        setViewersLock({
+          message: errData?.message || "Viewing profile visitors is not included in your current subscription plan.",
+          code: errData?.code,
+          requiredFeature: errData?.requiredFeature,
+        });
       } else {
         const errData = await viewersRes.json().catch(() => null);
         setViewersError(errData?.message || "Unable to load profile viewers.");
@@ -145,8 +129,7 @@ function SettingsPage() {
 
   const handlePeriodChange = async (newPeriod) => {
     setSelectedPeriod(newPeriod);
-    // Temporarily commented out tier check:
-    // if (userTier === 'free') return;
+    setPeriodLock(null);
 
     try {
       setViewersLoading(true);
@@ -158,6 +141,15 @@ function SettingsPage() {
         const data = await res.json();
         setProfileViewsCount(data.total ?? 0);
         setViewers(data.viewers || []);
+        setPeriodLock(null);
+        setViewersLock(null);
+      } else if (res.status === 403) {
+        const errData = await res.json().catch(() => null);
+        setPeriodLock({
+          message: errData?.message || "Filtering viewers by custom periods is not included in your current subscription plan.",
+          code: errData?.code,
+          requiredFeature: errData?.requiredFeature,
+        });
       } else {
         const errData = await res.json().catch(() => null);
         setViewersError(errData?.message || "Unable to load profile viewers.");
@@ -371,39 +363,13 @@ function SettingsPage() {
                         <div>
                           <div className="flex items-center gap-2.5">
                             <h4 className="text-lg font-medium text-gray-800">Who's viewed your profile</h4>
-                            {/* Temporarily commented out tier badges:
-                            {userTier === 'super_premium' ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
-                                <WorkspacePremiumIcon className="w-3.5 h-3.5 text-amber-600" />
-                                Super Premium
-                              </span>
-                            ) : userTier === 'premium' ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300">
-                                <WorkspacePremiumIcon className="w-3.5 h-3.5 text-blue-600" />
-                                Premium
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-300">
-                                Free Tier
-                              </span>
-                            )}
-                            */}
                           </div>
-                          {/* Temporarily commented out tier-based subtitle:
-                          <p className="text-sm text-gray-500 mt-0.5">
-                            {userTier === 'free'
-                              ? "Track your total visits and upgrade to see who viewed you"
-                              : `Members who recently visited your profile in the past ${selectedPeriod} days`}
-                          </p>
-                          */}
                           <p className="text-sm text-gray-500 mt-0.5">
                             Members who recently visited your profile in the past {selectedPeriod} days
                           </p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 self-start sm:self-auto">
-                          {/* Period filter controls: previously hidden for Free tier */}
-                          {/* {userTier !== 'free' && ( */}
                           <select
                             value={selectedPeriod}
                             onChange={(e) => handlePeriodChange(Number(e.target.value))}
@@ -414,9 +380,8 @@ function SettingsPage() {
                             <option value={30}>Last 30 days</option>
                             <option value={90}>Last 90 days</option>
                           </select>
-                          {/* )} */}
 
-                          {/* Profile views count: Displayed for all tiers */}
+                          {/* Profile views count */}
                           <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full">
                             <span className="text-sm sm:text-base font-semibold text-blue-600">Profile views:</span>
                             <span className="text-sm sm:text-base font-bold text-blue-700">
@@ -426,82 +391,38 @@ function SettingsPage() {
                         </div>
                       </div>
 
-                      {/* Upgrade Banner for Free Tier (Temporarily commented out) */}
-                      {/*
-                      {userTier === 'free' && (
-                        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5 mb-5 shadow-sm">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                              <div className="p-2.5 bg-blue-600 text-white rounded-lg shrink-0">
-                                <LockIcon className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <h5 className="text-sm font-bold text-gray-900">
-                                  See who's looking at your profile
-                                </h5>
-                                <p className="text-xs text-gray-600 mt-1 max-w-xl">
-                                  Upgrade to <span className="font-semibold text-blue-700">Premium</span> to unlock full viewer identities, browse past 90 days of visitors, and find new career opportunities.
-                                </p>
-                              </div>
+                      {/* Period Filter Feature Lock Banner */}
+                      {periodLock && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <LockIcon className="w-5 h-5 text-blue-600 shrink-0" />
+                            <div>
+                              <p className="text-xs sm:text-sm font-semibold text-blue-900">
+                                Period Filter Locked
+                              </p>
+                              <p className="text-xs text-blue-700">
+                                {periodLock.message}
+                              </p>
                             </div>
-                            <button
-                              onClick={goToPlan}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition whitespace-nowrap self-start sm:self-auto cursor-pointer"
-                            >
-                              Upgrade to Premium
-                            </button>
                           </div>
+                          <button
+                            onClick={goToPlan}
+                            className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-md shadow-sm transition whitespace-nowrap self-start sm:self-auto cursor-pointer"
+                          >
+                            View Available Plans
+                          </button>
                         </div>
                       )}
-                      */}
 
-                      {/* Upgrade Banner for Premium Tier (Temporarily commented out) */}
-                      {/*
-                      {userTier === 'premium' && (
-                        <div className= "bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5 mb-5 shadow-sm">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                              <div className="p-2.5 bg-blue-500 text-white rounded-lg ">
-                                <TrendingUpIcon className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <h5 className="text-sm font-bold text-gray-900">
-                                  Unlock Daily Profile Views Graph
-                                </h5>
-                                <p className="text-xs text-gray-600 mt-1 max-w-xl">
-                                  You are currently on <span className="font-semibold text-blue-700">Premium</span>. Upgrade to <span className="font-semibold text-blue-700">Super Premium</span> to visualize daily profile view trends and interactive charts across 7, 30, and 90 days.
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={goToPlan}
-                              className="px-4 py-2 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm cursor-pointer"
-                            >
-                              Upgrade to Super Premium
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      */}
-
-                      {/* Profile Views Graph Section: previously restricted to userTier === 'super_premium' */}
-                      {/* {userTier === 'super_premium' && ( */}
+                      {/* Profile Views Graph Component */}
                       <ProfileViewsGraph period={selectedPeriod} />
-                      {/* )} */}
 
+                      {/* Viewers List Container */}
                       <div className="bg-gray-50/70 border border-gray-200 rounded-lg p-4 sm:p-5">
                         <div className="flex items-center justify-between mb-4">
                           <div className="text-xs font-semibold text-gray-500">
                             Recent Viewers ({selectedPeriod} days)
-                            {/* {userTier === 'free' ? "(Restricted)" : `(${selectedPeriod} days)`} */}
                           </div>
-                          {/* Temporarily commented out Free plan badge:
-                          {userTier === 'free' && (
-                            <span className="text-xs text-white bg-blue-500 font-medium px-2.5 py-1.5 rounded-md">
-                              Details hidden on Free plan
-                            </span>
-                          )}
-                          */}
                         </div>
 
                         {viewersLoading ? (
@@ -515,6 +436,24 @@ function SettingsPage() {
                                 </div>
                               </div>
                             ))}
+                          </div>
+                        ) : viewersLock ? (
+                          <div className="text-center py-8 px-4 bg-white rounded-lg border border-dashed border-gray-300">
+                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2.5">
+                              <LockIcon className="w-5 h-5" />
+                            </div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              Profile Viewers Locked
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto mb-4">
+                              {viewersLock.message}
+                            </p>
+                            <button
+                              onClick={goToPlan}
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition cursor-pointer"
+                            >
+                              View Available Plans
+                            </button>
                           </div>
                         ) : viewersError ? (
                           <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
@@ -533,10 +472,7 @@ function SettingsPage() {
                         ) : (
                           <div className="flex flex-col gap-2.5 max-h-96 overflow-y-auto pr-1">
                             {viewers.map((viewer) => {
-                              /* Temporarily commented out tier-based restriction:
-                              const isRestricted = userTier === 'free' || !viewer.viewer_id;
-                              */
-                              const isRestricted = false;
+                              const isRestricted = !viewer.viewer_id;
                               return (
                                 <div
                                   key={viewer.view_id || `${viewer.viewer_id}-${viewer.viewed_at}`}
@@ -549,13 +485,13 @@ function SettingsPage() {
                                   }}
                                   className={`flex items-center justify-between gap-3 p-3 bg-white rounded-lg border border-gray-200 transition group shadow-sm ${
                                     isRestricted
-                                      ? "hover:blue-50 hover:bg-blue-50/20 cursor-pointer hover:border-blue-200"
+                                      ? "hover:bg-blue-50/20 cursor-pointer hover:border-blue-200"
                                       : "hover:bg-blue-50/50 hover:border-blue-200 cursor-pointer"
                                   }`}
                                 >
                                   <div className="flex items-center gap-3 min-w-0">
                                     {isRestricted ? (
-                                      <div className="w-11 h-11 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 hover:text-blue-600 transition">
+                                      <div className="w-11 h-11 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 group-hover:text-blue-600 transition">
                                         <LockIcon className="w-5 h-5" />
                                       </div>
                                     ) : (
@@ -569,10 +505,10 @@ function SettingsPage() {
                                       />
                                     )}
                                     <div className="min-w-0">
-                                      <div className={`text-sm font-semibold ${isRestricted ? "text-gray-700" : "text-gray-900 hover:text-blue-600 hover:underline"}`}>
+                                      <div className={`text-sm font-semibold ${isRestricted ? "text-gray-700" : "text-gray-900 group-hover:text-blue-600 group-hover:underline"}`}>
                                         {viewer.name}
                                       </div>
-                                      <div className="text-xs text-gray-500 max-w-[280px] sm:max-w-md ">
+                                      <div className="text-xs text-gray-500 max-w-[280px] sm:max-w-md truncate">
                                         {viewer.summary || "LinkedIn Member"}
                                       </div>
                                     </div>
@@ -583,7 +519,7 @@ function SettingsPage() {
                                       Unlock with Premium
                                     </span>
                                   ) : (
-                                    <span className="text-xs font-medium text-blue-600 hover:underline">
+                                    <span className="text-xs font-medium text-blue-600 group-hover:underline">
                                       View profile →
                                     </span>
                                   )}

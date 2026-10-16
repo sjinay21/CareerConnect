@@ -1,6 +1,7 @@
 "use client";
 import PrivateRoute from "@/Route/privateroute";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useProfile } from "@/hooks/useProfile";
 import Advertisement from "@/components/feed/advertisement";
 import Card from "@/components/shared/card";
@@ -31,6 +32,8 @@ function ProfilePage() {
 
   const [posts, setPosts] = useState([]);
   const [connectionsCount, setConnectionsCount] = useState(0);
+  const [connectionsList, setConnectionsList] = useState([]);
+  const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -53,6 +56,8 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!userId || !loggedInUser?.id) return;
+    setConnectionsList([]);
+    setConnectionsCount(0);
 
     async function loadAllProfileData() {
       try {
@@ -81,6 +86,7 @@ function ProfilePage() {
               const connData = await connRes.json();
               if (connData && connData.friends) {
                 setConnectionsCount(connData.friends.length);
+                setConnectionsList(connData.friends);
               }
             }
           } catch (e) {
@@ -168,6 +174,20 @@ function ProfilePage() {
     }
   };
 
+  const handleMessageUser = async (targetUserId) => {
+    if (!targetUserId) return;
+    try {
+      const response = await createOrGetConversation(targetUserId);
+      if (response.ok) {
+        setIsConnectionsModalOpen(false);
+        goToMessages();
+      }
+    } catch (error) {
+      console.error("Error creating/getting conversation", error);
+      showErrorToast("Failed to start conversation");
+    }
+  };
+
   function openEditModal() {
     if (!isOwnProfile) return;
     setProfilePictureFile(null);
@@ -232,12 +252,13 @@ function ProfilePage() {
                     <div className="text-sm text-gray-500">
                       {profile.location}
                     </div>
-                    {isOwnProfile && (
-                      <div className="text-md text-blue-500 w-fit cursor-pointer hover:underline">
-                        {connectionsCount} Connection
-                        {connectionsCount !== 1 ? "s" : ""}
-                      </div>
-                    )}
+                    <div
+                      onClick={() => setIsConnectionsModalOpen(true)}
+                      className="text-md text-blue-500 w-fit cursor-pointer hover:underline"
+                    >
+                      {connectionsCount} Connection
+                      {connectionsCount !== 1 ? "s" : ""}
+                    </div>
                     <div className="md:flex w-full justify-between">
                       <div className="my-5 flex gap-5 md:gap-0">
                         <div className="cursor-pointer p-2 border rounded-lg hover:bg-blue-600 hover:text-white font-semibold mr-4">
@@ -607,6 +628,100 @@ function ProfilePage() {
                   Logout
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isConnectionsModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+          onClick={() => setIsConnectionsModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Connections</h2>
+                <p className="text-xs text-gray-500">
+                  {connectionsCount} {connectionsCount === 1 ? "connection" : "connections"}
+                </p>
+              </div>
+              <button 
+                onClick={() => setIsConnectionsModalOpen(false)}
+                className="text-gray-400 hover:text-gray-700 transition-colors text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto divide-y divide-gray-100 flex-1">
+              {connectionsList.length === 0 ? (
+                <div className="py-8 text-center text-gray-500 text-sm">
+                  No connections to show
+                </div>
+              ) : (
+                connectionsList.map((conn) => {
+                  const u = conn.user;
+                  if (!u) return null;
+                  const isCurrentAuthUser = loggedInUser?.id && loggedInUser.id === u.id;
+
+                  return (
+                    <div
+                      key={conn.connectionId || u.id}
+                      className="py-3 flex items-center justify-between gap-3 first:pt-0 last:pb-0"
+                    >
+                      <Link
+                        href={ROUTES.PROFILE(u.id)}
+                        onClick={() => setIsConnectionsModalOpen(false)}
+                        className="flex items-center gap-3 min-w-0 flex-1 group"
+                      >
+                        <img
+                          src={
+                            u.profilePicture ||
+                            u.profile_picture_url ||
+                            "https://media.licdn.com/media//AAYAAgSrAAgAAQAAAAAAAGM6w-NyPk-_SVikYiCJ6V3Z-Q.png"
+                          }
+                          alt={u.name || "User"}
+                          className="w-12 h-12 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 group-hover:underline truncate">
+                            {u.name}
+                          </p>
+                          {u.summary && (
+                            <p className="text-xs text-gray-600 truncate">
+                              {u.summary}
+                            </p>
+                          )}
+                          {u.location && (
+                            <p className="text-xs text-gray-400 truncate">
+                              {u.location}
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+
+                      <div className="flex-shrink-0 flex items-center gap-2">
+                        {!isCurrentAuthUser ? (
+                          <button
+                            onClick={() => handleMessageUser(u.id)}
+                            className="px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-600 rounded-full hover:bg-blue-50 transition-colors"
+                          >
+                            Message
+                          </button>
+                        ) : (
+                          <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
+                            You
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

@@ -3,11 +3,10 @@ import * as Yup from "yup";
 export const planSchema = Yup.object().shape({
   name: Yup.string().required("Plan name is required"),
   description: Yup.string().required("Description is required"),
-  features: Yup.string().required("Features are required"),
   price: Yup.number().min(0, "Price cannot be negative").required("Price is required"),
   currency: Yup.string().required("Currency is required"),
   billing_period: Yup.string().required("Billing period is required"),
-  tier: Yup.string()
-    .oneOf(["premium", "super_premium"], "Plan tier must be Premium or Super Premium")
-    .required("Plan tier is required"),
+  featureIds: Yup.array().of(Yup.number()),
+  features: Yup.string().optional(),
+  tier: Yup.string().optional(),
 });
