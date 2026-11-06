@@ -1,6 +1,6 @@
-# LinkedIn Clone
+# CareerConnect
 
-A full-stack LinkedIn clone built to replicate the core functionalities of the professional networking platform. This project features user authentication, a dynamic post feed, image uploads, real-time-like interactions, and a fully responsive modern UI.
+A full-stack CareerConnect built to replicate the core functionalities of the professional networking platform. This project features user authentication, a dynamic post feed, image uploads, real-time-like interactions, and a fully responsive modern UI.
 
 ## 🚀 Features
 
